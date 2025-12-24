@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+python-dotenv
+httpx
+python-multipart
+pytesseract
+Pillow
+openpyxl
+pandas
+aiosqlite
+opencv-python
+PyMuPDF
+jinja2
+python-magic
+google-generativeai
+paddlepaddle
+paddleocr
