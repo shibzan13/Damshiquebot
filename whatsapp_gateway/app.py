@@ -1,20 +1,67 @@
-from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi import FastAPI, Request, BackgroundTasks, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import os
 import json
 import httpx
+from typing import List
 from agent_orchestrator.orchestrator import run_agent_loop
-from storage.db import init_storage
+from api.admin_api import router as admin_router
+from api.analytics_api import router as analytics_router
 from tools.messaging_tools.whatsapp import send_whatsapp
+from tools.notification_engine import NotificationEngine
+from storage.postgres_repository import run_pg_migrations
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except:
+                pass
+
+manager = ConnectionManager()
 
 app = FastAPI()
+app.include_router(admin_router)
+app.include_router(analytics_router)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "agentic_token")
 WA_TOKEN = os.getenv("WA_TOKEN")
 
 @app.on_event("startup")
 async def startup():
-    await init_storage()
+    await run_pg_migrations()
+    NotificationEngine.set_broadcaster(manager.broadcast)
     print("🚀 Agentic Expense System Ready")
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 @app.get("/webhook")
 async def verify_webhook(request: Request):
@@ -55,7 +102,11 @@ async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
                         text_body = msg.get("text", {}).get("body", "") if "text" in msg else None
                         
                         # Use orchestrator
-                        background_tasks.add_task(run_agent_loop, user_phone, text_body, media_path, mime_type)
+                        document_id = None
+                        if "image" in msg: document_id = msg["image"]["id"]
+                        elif "document" in msg: document_id = msg["document"]["id"]
+
+                        background_tasks.add_task(run_agent_loop, user_phone, text_body, media_path, mime_type, document_id)
         
         return {"status": "ok"}
     except Exception as e:
@@ -83,7 +134,16 @@ async def download_wa_media(media_id, mime_type):
         elif "jpeg" in mime_type or "jpg" in mime_type: ext = "jpg"
         
         os.makedirs("uploads", exist_ok=True)
-        file_path = os.path.join("uploads", f"{media_id}.{ext}")
-        with open(file_path, "wb") as f:
+        local_path = os.path.join("uploads", f"{media_id}.{ext}")
+        with open(local_path, "wb") as f:
             f.write(res.content)
-        return file_path
+        return local_path
+
+# Serve Uploads
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Serve Frontend Static Files - MOVED TO END to avoid hijacking POST/GET routes
+build_dir = "webapp/damshique-bot-ui/dist"
+if os.path.exists(build_dir):
+    app.mount("/", StaticFiles(directory=build_dir, html=True), name="static")

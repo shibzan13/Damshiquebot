@@ -74,11 +74,24 @@ def ocr_paddle(image_path):
     tokens = []
     
     for line in result[0]:
-        t = line[1][0]
-        c = line[1][1]
-        tokens.append({"text": t, "confidence": c, "bbox": line[0]})
-        text_lines.append(t)
-        confidences.append(c)
+        t = ""
+        c = 0.0
+        
+        # Robust parsing of PaddleOCR output
+        if len(line) >= 2:
+            content = line[1]
+            if isinstance(content, (list, tuple)) and len(content) >= 2:
+                t = content[0]
+                c = content[1]
+            elif isinstance(content, str):
+                # Edge case where only text is returned
+                t = content
+                c = 0.99
+                
+        if t:
+            tokens.append({"text": t, "confidence": c, "bbox": line[0]})
+            text_lines.append(t)
+            confidences.append(c)
         
     return {
         "raw_text": "\n".join(text_lines),

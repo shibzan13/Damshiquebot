@@ -66,4 +66,14 @@ coverage/
 *.key
 *.crt
 
-
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+.tox/
+.nox/
+.cache/
+.mypy_cache/

@@ -1,0 +1,192 @@
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, DollarSign, ShoppingCart, AlertTriangle, Download, Calendar, Filter } from 'lucide-react';
+import { SpendTrendChart, CategoryPieChart, MerchantBarChart, TrendStatCard, ChartSkeleton } from './ChartComponents';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+
+const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+
+export default function AnalyticsDashboard() {
+    const [loading, setLoading] = useState(true);
+    const [trendData, setTrendData] = useState<any[]>([]);
+    const [categoryData, setCategoryData] = useState<any[]>([]);
+    const [merchantData, setMerchantData] = useState<any[]>([]);
+    const [anomalies, setAnomalies] = useState<any[]>([]);
+    const [predictive, setPredictive] = useState<any>(null);
+
+    const [dateRange, setDateRange] = useState({
+        start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        end: new Date()
+    });
+
+    const [period, setPeriod] = useState('6months');
+
+    useEffect(() => {
+        fetchAllAnalytics();
+    }, [period, dateRange]);
+
+    const fetchAllAnalytics = async () => {
+        setLoading(true);
+        try {
+            // Fetch all analytics in parallel
+            const [trendsRes, categoriesRes, merchantsRes, anomaliesRes, predictiveRes] = await Promise.all([
+                fetch(`/api/analytics/spend-trends?period=${period}`, {
+                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                }),
+                fetch(`/api/analytics/category-breakdown?start_date=${dateRange.start.toISOString().split('T')[0]}&end_date=${dateRange.end.toISOString().split('T')[0]}`, {
+                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                }),
+                fetch(`/api/analytics/merchant-comparison?limit=10&start_date=${dateRange.start.toISOString().split('T')[0]}&end_date=${dateRange.end.toISOString().split('T')[0]}`, {
+                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                }),
+                fetch('/api/analytics/anomalies', {
+                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                }),
+                fetch('/api/analytics/predictive-spend', {
+                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                })
+            ]);
+
+            const trends = await trendsRes.json();
+            const categories = await categoriesRes.json();
+            const merchants = await merchantsRes.json();
+            const anomaliesData = await anomaliesRes.json();
+            const predictiveData = await predictiveRes.json();
+
+            setTrendData(trends.data || []);
+            setCategoryData(categories.categories || []);
+            setMerchantData(merchants.merchants || []);
+            setAnomalies(anomaliesData.anomalies || []);
+            setPredictive(predictiveData);
+        } catch (err) {
+            console.error('Failed to fetch analytics:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {/* Header */}
+            <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '24px 32px' }}>
+                <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                        <div>
+                            <h1 style={{ fontSize: 32, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>Analytics Dashboard</h1>
+                            <p style={{ fontSize: 15, color: '#64748b' }}>AI-powered insights and spending intelligence</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: 12 }}>
+                            <select
+                                value={period}
+                                onChange={(e) => setPeriod(e.target.value)}
+                                style={{ padding: '12px 16px', borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 14, fontWeight: 600, cursor: 'pointer', background: '#fff' }}
+                            >
+                                <option value="3months">Last 3 Months</option>
+                                <option value="6months">Last 6 Months</option>
+                                <option value="1year">Last Year</option>
+                                <option value="all">All Time</option>
+                            </select>
+                            <button
+                                onClick={fetchAllAnalytics}
+                                style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+                            >
+                                <Download size={18} /> Export Report
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Predictive Stats */}
+                    {predictive && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
+                            <TrendStatCard
+                                title="Current Month Spend"
+                                value={`${predictive.current_spend.toLocaleString()} AED`}
+                                change={predictive.variance_percentage}
+                                icon={<DollarSign size={24} />}
+                                color="#3b82f6"
+                            />
+                            <TrendStatCard
+                                title="Projected Month-End"
+                                value={`${Math.round(predictive.projected_spend).toLocaleString()} AED`}
+                                icon={<TrendingUp size={24} />}
+                                color="#8b5cf6"
+                            />
+                            <TrendStatCard
+                                title="Daily Average"
+                                value={`${Math.round(predictive.daily_average).toLocaleString()} AED`}
+                                icon={<ShoppingCart size={24} />}
+                                color="#10b981"
+                            />
+                            <TrendStatCard
+                                title="Anomalies Detected"
+                                value={anomalies.length}
+                                icon={<AlertTriangle size={24} />}
+                                color="#ef4444"
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div style={{ maxWidth: 1400, margin: '0 auto', padding: 32 }}>
+                {/* Spend Trend Chart */}
+                <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: 32, marginBottom: 24 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>Spending Trends</h2>
+                    {loading ? <ChartSkeleton /> : <SpendTrendChart data={trendData} />}
+                </div>
+
+                {/* Category & Merchant Charts */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 24, marginBottom: 24 }}>
+                    <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: 32 }}>
+                        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>Category Breakdown</h2>
+                        {loading ? <ChartSkeleton /> : <CategoryPieChart data={categoryData} />}
+                        <div style={{ marginTop: 20 }}>
+                            {categoryData.slice(0, 5).map((cat, i) => (
+                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                    <span style={{ fontSize: 14, fontWeight: 600, color: '#64748b' }}>{cat.name}</span>
+                                    <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{cat.value.toLocaleString()} AED ({cat.percentage}%)</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: 32 }}>
+                        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>Top Merchants</h2>
+                        {loading ? <ChartSkeleton /> : <MerchantBarChart data={merchantData} />}
+                    </div>
+                </div>
+
+                {/* Anomalies Alert */}
+                {anomalies.length > 0 && (
+                    <div style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', borderRadius: 24, border: '2px solid #f59e0b', padding: 32 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                            <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <AlertTriangle size={24} />
+                            </div>
+                            <div>
+                                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#92400e' }}>Unusual Spending Detected</h2>
+                                <p style={{ fontSize: 14, color: '#78350f' }}>These invoices are significantly above average</p>
+                            </div>
+                        </div>
+                        <div style={{ display: 'grid', gap: 12 }}>
+                            {anomalies.slice(0, 5).map((anomaly, i) => (
+                                <div key={i} style={{ background: '#fff', borderRadius: 16, padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{anomaly.vendor}</div>
+                                        <div style={{ fontSize: 13, color: '#64748b' }}>{anomaly.user} • {new Date(anomaly.date).toLocaleDateString()}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: 18, fontWeight: 800, color: '#ef4444' }}>{anomaly.amount.toLocaleString()} AED</div>
+                                        <div style={{ fontSize: 12, color: '#64748b' }}>{anomaly.deviation}σ above average</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');`}</style>
+        </div>
+    );
+}

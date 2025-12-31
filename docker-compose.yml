@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: damshique_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin_password}
+      POSTGRES_DB: ${POSTGRES_DB:-expense_tracker}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - damshique-net
+
+  # Web Server & SSL (Caddy)
+  caddy:
+    image: caddy:2-alpine
+    container_name: damshique_gateway
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - damshique-net
+
+  # Main Application (Backend + Frontend)
+  app:
+    build: .
+    container_name: damshique_app
+    restart: always
+    expose:
+      - "3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin_password}@db:5432/${POSTGRES_DB:-expense_tracker}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-eu-north-1}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - WA_TOKEN=${WA_TOKEN}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - PORT=3000
+    depends_on:
+      - db
+    requires:
+      - db
+    networks:
+      - damshique-net
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+
+
+networks:
+  damshique-net:
+    driver: bridge

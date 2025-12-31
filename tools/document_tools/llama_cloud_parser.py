@@ -22,14 +22,6 @@ async def llama_cloud_extract(file_path):
     try:
         print(f"🦙 Llama Cloud parsing: {file_path}")
         
-        # Initialize parser with updated API
-        parser = LlamaParse(
-            api_key=LLAMA_CLOUD_API_KEY,
-            result_type="markdown",
-            verbose=True,
-            gpt4o_mode="fast"  # Use faster processing
-        )
-        
         # Create extraction prompt
         extraction_prompt = """
         Extract the following details from this receipt or invoice:
@@ -42,13 +34,18 @@ async def llama_cloud_extract(file_path):
         Focus on finding the absolute total paid. 
         If the document contains multiple pages, combine the information.
         """
+
+        # Initialize parser with updated API
+        parser = LlamaParse(
+            api_key=LLAMA_CLOUD_API_KEY,
+            result_type="markdown",
+            verbose=True,
+            gpt4o_mode=True,  # Enable premium/gpt4o mode (must be boolean)
+            parsing_instruction=extraction_prompt
+        )
         
         # Process the file
-        documents = await parser.aload_data(
-            file_path,
-            system_prompt=extraction_prompt,
-            num_workers=2  # Adjust based on your needs
-        )
+        documents = await parser.aload_data(file_path)
         
         if not documents:
             print("⚠️ Llama Cloud returned no documents")

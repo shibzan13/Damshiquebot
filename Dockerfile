@@ -1,29 +1,40 @@
-# Dockerfile for WhatsApp Expense AI Bot
-FROM node:20-alpine
+# Stage 1: Build the React Frontend
+FROM node:18-alpine as ui-build
+WORKDIR /app/ui
+COPY webapp/damshique-bot-ui/package.json webapp/damshique-bot-ui/package-lock.json ./
+RUN npm install
+COPY webapp/damshique-bot-ui/ ./
+RUN npm run build
 
-# Set working directory
+# Stage 2: Build the Python Backend
+FROM python:3.11-slim
+
+# Install system dependencies for OCR and image processing
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    libtesseract-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy Python requirements first to leverage caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy application files
+# Copy the rest of the application
 COPY . .
 
-# Create uploads directory
-RUN mkdir -p uploads
+# Copy the built frontend from Stage 1 to the location expected by FastAPI
+COPY --from=ui-build /app/ui/dist ./webapp/damshique-bot-ui/dist
 
-# Expose port
+# Create necessary directories
+RUN mkdir -exports uploads
+
+# Expose the API/Web port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
-
-# Start application
-CMD ["node", "server.js"]
-
-
+# Command to run the application
+CMD ["python", "main.py"]
