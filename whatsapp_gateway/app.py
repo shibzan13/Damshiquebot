@@ -146,7 +146,7 @@ async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
                         if "image" in msg: document_id = msg["image"]["id"]
                         elif "document" in msg: document_id = msg["document"]["id"]
 
-                        print(f"🏃 Handing off to Agent Orchestrator for {user_phone}...")
+                        print(f"🏃 Handing off to Agent: user={user_phone}, text='{text_body}', media={bool(media_path)}")
                         background_tasks.add_task(run_agent_loop, user_phone, text_body, media_path, mime_type, document_id)
         
         return {"status": "ok"}
