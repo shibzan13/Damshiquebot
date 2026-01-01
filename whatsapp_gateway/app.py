@@ -94,7 +94,7 @@ async def verify_webhook(request: Request):
         print("✅ Webhook Verified Successfully!")
         return Response(content=str(hub_challenge), media_type="text/plain")
     
-    print("❌ Webhook Verification Failed!")
+    print(f"❌ Webhook Verification Failed! Received: '{hub_verify_token}', Expected: '{WHATSAPP_VERIFY_TOKEN}'")
     return Response(content="Verification Failed", status_code=403)
 
 @app.post("/webhook")
