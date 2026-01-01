@@ -144,7 +144,9 @@ os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Serve Frontend Static Files
-build_dir = os.path.join(os.getcwd(), "WebApp", "damshique-bot-ui", "dist")
+# In Docker, the app is in /app. We use absolute paths to avoid CWD issues.
+BASE_DIR = "/app" if os.path.exists("/app/WebApp") else os.getcwd()
+build_dir = os.path.join(BASE_DIR, "WebApp", "damshique-bot-ui", "dist")
 actual_build_dir = build_dir
 
 @app.on_event("startup")
