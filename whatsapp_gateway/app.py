@@ -114,8 +114,9 @@ async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
                 if "messages" in value:
                     for msg in value["messages"]:
                         user_phone = msg.get("from")
-                        msg_id = msg.get("id")
-                        print(f"📩 Processing message {msg_id} from {user_phone}")
+                        msg_id = msg.get("id", "TEST_ID")
+                        text_body = msg.get("text", {}).get("body", "") if "text" in msg else None
+                        print(f"📩 Processing message [{msg_id}] from {user_phone}: '{text_body}'")
                         
                         # Handle Media
                         media_path = None

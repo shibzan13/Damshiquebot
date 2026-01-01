@@ -28,15 +28,16 @@ async def send_whatsapp(user_phone, text):
     
     async with httpx.AsyncClient() as client:
         try:
-            print(f"📤 Sending WhatsApp to {user_phone}: {text}")
+            print(f"📤 [WA_SEND] phone={user_phone}, text_len={len(text)}")
             response = await client.post(url, headers=headers, json=payload, timeout=10.0)
             if response.status_code == 200:
+                print(f"✅ [WA_SUCCESS] to={user_phone}")
                 return True
             else:
-                print(f"❌ WA Error: {response.text}")
+                print(f"❌ [WA_ERROR] status={response.status_code}, body={response.text}")
                 return False
         except Exception as e:
-            print(f"❌ WA Exception: {e}")
+            print(f"❌ [WA_EXCEPTION] {e}")
             return False
 
 async def mark_read(message_id):
