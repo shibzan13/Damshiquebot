@@ -122,9 +122,14 @@ async def get_category_breakdown(
     try:
         # Default to current month if no dates provided
         if not start_date:
-            start_date = (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')
+            sd_obj = datetime.now() - timedelta(days=90)
+        else:
+            sd_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            
         if not end_date:
-            end_date = datetime.now().strftime('%Y-%m-%d')
+            ed_obj = datetime.now()
+        else:
+            ed_obj = datetime.strptime(end_date, '%Y-%m-%d')
         
         query = """
             SELECT 
@@ -138,7 +143,7 @@ async def get_category_breakdown(
             ORDER BY total_spend DESC
         """
         
-        rows = await conn.fetch(query, start_date, end_date)
+        rows = await conn.fetch(query, sd_obj.date() if hasattr(sd_obj, 'date') else sd_obj, ed_obj.date() if hasattr(ed_obj, 'date') else ed_obj)
         
         total = sum(float(row['total_spend']) for row in rows)
         
@@ -175,11 +180,17 @@ async def get_merchant_comparison(
         raise HTTPException(status_code=500, detail="Database connection failed")
     
     try:
+        # Prepare date objects for asyncpg
         if not start_date:
-            start_date = (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')
+            sd_obj = datetime.now() - timedelta(days=90)
+        else:
+            sd_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            
         if not end_date:
-            end_date = datetime.now().strftime('%Y-%m-%d')
-        
+            ed_obj = datetime.now()
+        else:
+            ed_obj = datetime.strptime(end_date, '%Y-%m-%d')
+
         query = """
             SELECT 
                 vendor_name,
@@ -195,7 +206,7 @@ async def get_merchant_comparison(
             LIMIT $3
         """
         
-        rows = await conn.fetch(query, start_date, end_date, limit)
+        rows = await conn.fetch(query, sd_obj.date() if hasattr(sd_obj, 'date') else sd_obj, ed_obj.date() if hasattr(ed_obj, 'date') else ed_obj, limit)
         
         return {
             "start_date": start_date,
@@ -227,10 +238,16 @@ async def get_department_spending(
         raise HTTPException(status_code=500, detail="Database connection failed")
     
     try:
+        # Prepare date objects for asyncpg
         if not start_date:
-            start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+            sd_obj = datetime.now().replace(day=1)
+        else:
+            sd_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            
         if not end_date:
-            end_date = datetime.now().strftime('%Y-%m-%d')
+            ed_obj = datetime.now()
+        else:
+            ed_obj = datetime.strptime(end_date, '%Y-%m-%d')
         
         query = """
             SELECT 
@@ -246,7 +263,7 @@ async def get_department_spending(
             ORDER BY total_spend DESC
         """
         
-        rows = await conn.fetch(query, start_date, end_date)
+        rows = await conn.fetch(query, sd_obj.date() if hasattr(sd_obj, 'date') else sd_obj, ed_obj.date() if hasattr(ed_obj, 'date') else ed_obj)
         
         return {
             "start_date": start_date,

@@ -49,6 +49,7 @@ services:
       - AWS_REGION=${AWS_REGION:-eu-north-1}
       - AWS_S3_BUCKET=${AWS_S3_BUCKET}
       - WA_TOKEN=${WA_TOKEN}
+      - WA_PHONE_ID=${WA_PHONE_ID}
       - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
       - ADMIN_TOKEN=${ADMIN_TOKEN}
       - PORT=3000
