@@ -49,11 +49,11 @@ export default function AuditLogsDashboard() {
     return colors[action] || "#64748b";
   };
 
-  const filteredLogs = logs.filter(log =>
+  const filteredLogs = Array.isArray(logs) ? logs.filter(log =>
     log.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.entity_type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    log.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    log.entity_type?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) : [];
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

@@ -26,15 +26,15 @@ export default function MerchantsDashboard() {
     fetchMerchants();
   }, []);
 
-  const filteredMerchants = merchants.filter(m =>
-    m.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMerchants = Array.isArray(merchants) ? merchants.filter(m =>
+    m.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) : [];
 
   const stats = [
-    { label: "Total Merchants", value: merchants.length.toString(), icon: <Store size={20} />, color: "#3b82f6" },
-    { label: "Top Merchant", value: merchants.length > 0 ? merchants[0].name.split(' ')[0] : "None", icon: <TrendingUp size={20} />, color: "#10b981" },
-    { label: "Total Spend", value: `${Math.round(merchants.reduce((acc, m) => acc + parseFloat(m.total_spend || 0), 0)).toLocaleString()} AED`, icon: <DollarSign size={20} />, color: "#f59e0b" },
-    { label: "Active Items", value: merchants.reduce((acc, m) => acc + (m.total_invoices || 0), 0).toString(), icon: <Package size={20} />, color: "#8b5cf6" },
+    { label: "Total Merchants", value: Array.isArray(merchants) ? merchants.length.toString() : "0", icon: <Store size={20} />, color: "#3b82f6" },
+    { label: "Top Merchant", value: Array.isArray(merchants) && merchants.length > 0 ? (merchants[0].name || "None").split(' ')[0] : "None", icon: <TrendingUp size={20} />, color: "#10b981" },
+    { label: "Total Spend", value: `${Math.round(Array.isArray(merchants) ? merchants.reduce((acc, m) => acc + parseFloat(m.total_spend || 0), 0) : 0).toLocaleString()} AED`, icon: <DollarSign size={20} />, color: "#f59e0b" },
+    { label: "Active Items", value: (Array.isArray(merchants) ? merchants.reduce((acc, m) => acc + (m.total_invoices || 0), 0) : 0).toString(), icon: <Package size={20} />, color: "#8b5cf6" },
   ];
 
   return (

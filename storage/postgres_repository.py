@@ -452,9 +452,9 @@ async def get_report_stats():
         
         # 5. Top Employees
         top_users = await conn.fetch("""
-            SELECT u.name, COUNT(i.invoice_id) as orders, SUM(i.total_amount) as revenue
-            FROM invoices i
-            JOIN system_users u ON i.user_id = u.phone
+            SELECT u.name, COUNT(i.invoice_id) as orders, COALESCE(SUM(i.total_amount), 0) as revenue
+            FROM system_users u
+            LEFT JOIN invoices i ON i.user_id = u.phone
             GROUP BY u.name
             ORDER BY revenue DESC
             LIMIT 5
@@ -462,15 +462,15 @@ async def get_report_stats():
         
         return {
             "stats": {
-                "total_spend": float(total_spend),
-                "total_invoices": total_invoices,
-                "user_count": user_count,
-                "avg_invoice": float(avg_invoice)
+                "total_spend": float(total_spend or 0),
+                "total_invoices": total_invoices or 0,
+                "user_count": user_count or 0,
+                "avg_invoice": float(avg_invoice or 0)
             },
-            "revenueData": [dict(r) for r in monthly_spend],
-            "distribution": [dict(r) for r in category_spend],
-            "topProducts": [dict(r) for r in top_vendors],
-            "topCustomers": [dict(r) for r in top_users]
+            "revenueData": [dict(r) for r in monthly_spend] if monthly_spend else [],
+            "distribution": [dict(r) for r in category_spend] if category_spend else [],
+            "topProducts": [dict(r) for r in top_vendors] if top_vendors else [],
+            "topCustomers": [dict(r) for r in top_users] if top_users else []
         }
     finally:
         await conn.close()

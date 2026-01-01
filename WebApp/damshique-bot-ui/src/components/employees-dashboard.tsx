@@ -51,14 +51,14 @@ export default function EmployeesDashboard() {
     }
   };
 
-  const filteredEmployees = employees.filter(emp =>
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.phone.includes(searchQuery)
-  );
+  const filteredEmployees = Array.isArray(employees) ? employees.filter(emp =>
+    emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.phone?.includes(searchQuery)
+  ) : [];
 
   const stats = [
-    { label: "Total Employees", value: employees.length.toString(), icon: <Users size={20} />, color: "#3b82f6" },
-    { label: "Admins", value: employees.filter(e => e.role === 'admin').length.toString(), icon: <Award size={20} />, color: "#10b981" },
+    { label: "Total Employees", value: Array.isArray(employees) ? employees.length.toString() : "0", icon: <Users size={20} />, color: "#3b82f6" },
+    { label: "Admins", value: Array.isArray(employees) ? employees.filter(e => e.role === 'admin').length.toString() : "0", icon: <Award size={20} />, color: "#10b981" },
     { label: "Pending Issues", value: "0", icon: <X size={20} />, color: "#ef4444" },
     { label: "Active Channels", value: "WhatsApp", icon: <Phone size={20} />, color: "#8b5cf6" },
   ];

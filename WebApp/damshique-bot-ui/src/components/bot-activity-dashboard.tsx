@@ -20,7 +20,7 @@ export default function BotActivityDashboard() {
   }, []);
 
   const stats = [
-    { label: "Total Queries", value: activities.length.toString(), change: "+24%", icon: <MessageSquare size={20} />, color: "#3b82f6" },
+    { label: "Total Queries", value: Array.isArray(activities) ? activities.length.toString() : "0", change: "+24%", icon: <MessageSquare size={20} />, color: "#3b82f6" },
     { label: "Success Rate", value: "98.2%", change: "+1.2%", icon: <CheckCircle size={20} />, color: "#10b981" },
     { label: "Avg Response Time", value: "0.8s", change: "-12%", icon: <Zap size={20} />, color: "#8b5cf6" },
     { label: "Active Channels", value: "2", change: "None", icon: <Target size={20} />, color: "#f59e0b" },
@@ -80,7 +80,7 @@ export default function BotActivityDashboard() {
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {loading ? (
                 <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>Loading bot history...</div>
-              ) : activities.length === 0 ? (
+              ) : !Array.isArray(activities) || activities.length === 0 ? (
                 <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>No interactions logged yet.</div>
               ) : activities.map(activity => {
                 const sc = getStatusConfig("success");

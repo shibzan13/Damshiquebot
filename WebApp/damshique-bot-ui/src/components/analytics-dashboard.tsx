@@ -53,10 +53,10 @@ export default function AnalyticsDashboard() {
             const anomaliesData = await anomaliesRes.json();
             const predictiveData = await predictiveRes.json();
 
-            setTrendData(trends.data || []);
-            setCategoryData(categories.categories || []);
-            setMerchantData(merchants.merchants || []);
-            setAnomalies(anomaliesData.anomalies || []);
+            setTrendData(Array.isArray(trends.data) ? trends.data : []);
+            setCategoryData(Array.isArray(categories.categories) ? categories.categories : []);
+            setMerchantData(Array.isArray(merchants.merchants) ? merchants.merchants : []);
+            setAnomalies(Array.isArray(anomaliesData.anomalies) ? anomaliesData.anomalies : []);
             setPredictive(predictiveData);
         } catch (err) {
             console.error('Failed to fetch analytics:', err);

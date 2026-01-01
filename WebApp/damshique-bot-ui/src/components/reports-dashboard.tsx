@@ -29,13 +29,14 @@ export default function ReportsDashboard() {
   const { stats: resStats, revenueData, distribution, topProducts, topCustomers } = data;
 
   const displayStats = [
-    { label: "Total Approved Spend", value: `${resStats.total_spend.toLocaleString()} AED`, change: "+12.5%", trend: "up", icon: <DollarSign size={20} />, color: "#10b981" },
-    { label: "Processed Invoices", value: resStats.total_invoices.toString(), change: "+8.2%", trend: "up", icon: <Package size={20} />, color: "#3b82f6" },
-    { label: "Active Employees", value: resStats.user_count.toString(), change: "+2.8%", trend: "up", icon: <Users size={20} />, color: "#8b5cf6" },
-    { label: "Avg Invoice Value", value: `${resStats.avg_invoice.toFixed(2)} AED`, change: "-1.2%", trend: "down", icon: <TrendingUp size={20} />, color: "#f59e0b" },
+    { label: "Total Approved Spend", value: `${(resStats?.total_spend || 0).toLocaleString()} AED`, change: "+12.5%", trend: "up", icon: <DollarSign size={20} />, color: "#10b981" },
+    { label: "Processed Invoices", value: (resStats?.total_invoices || 0).toString(), change: "+8.2%", trend: "up", icon: <Package size={20} />, color: "#3b82f6" },
+    { label: "Active Employees", value: (resStats?.user_count || 0).toString(), change: "+2.8%", trend: "up", icon: <Users size={20} />, color: "#8b5cf6" },
+    { label: "Avg Invoice Value", value: `${(resStats?.avg_invoice || 0).toFixed(2)} AED`, change: "-1.2%", trend: "down", icon: <TrendingUp size={20} />, color: "#f59e0b" },
   ];
 
-  const maxRevenue = Math.max(...revenueData.map((d: any) => d.revenue), 1);
+  const safeRevenueData = Array.isArray(revenueData) ? revenueData : [];
+  const maxRevenue = safeRevenueData.length > 0 ? Math.max(...safeRevenueData.map((d: any) => d.revenue || 0), 1) : 1;
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -91,7 +92,7 @@ export default function ReportsDashboard() {
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              {revenueData.map((data: any, i: number) => (
+              {safeRevenueData.map((data: any, i: number) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 24 }}>
                   <div style={{ width: 60, fontSize: 13, fontWeight: 800, color: "#64748b" }}>{data.month}</div>
                   <div style={{ flex: 1, position: "relative" }}>
