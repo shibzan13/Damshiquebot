@@ -88,13 +88,15 @@ async def verify_webhook(request: Request):
     hub_verify_token = params.get("hub.verify_token")
     hub_challenge = params.get("hub.challenge")
     
-    print(f"🔍 Webhook Verification Attempt: mode={hub_mode}, token={hub_verify_token}")
-    
-    if hub_mode == "subscribe" and hub_verify_token == WHATSAPP_VERIFY_TOKEN:
+    # Clean tokens (remove quotes or spaces if they exist)
+    clean_received = str(hub_verify_token).strip().replace('"', '').replace("'", "")
+    clean_expected = str(WHATSAPP_VERIFY_TOKEN).strip().replace('"', '').replace("'", "")
+
+    if hub_mode == "subscribe" and clean_received == clean_expected:
         print("✅ Webhook Verified Successfully!")
         return Response(content=str(hub_challenge), media_type="text/plain")
     
-    print(f"❌ Webhook Verification Failed! Received: '{hub_verify_token}', Expected: '{WHATSAPP_VERIFY_TOKEN}'")
+    print(f"❌ Webhook Verification Failed! Received: '{clean_received}', Expected: '{clean_expected}'")
     return Response(content="Verification Failed", status_code=403)
 
 @app.post("/webhook")
