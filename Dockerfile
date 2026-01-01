@@ -1,5 +1,5 @@
 # Stage 1: Build the React Frontend
-FROM node:18-alpine as ui-build
+FROM node:20-alpine as ui-build
 WORKDIR /app/ui
 COPY WebApp/damshique-bot-ui/package.json WebApp/damshique-bot-ui/package-lock.json ./
 RUN npm install
