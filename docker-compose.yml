@@ -54,8 +54,6 @@ services:
       - PORT=3000
     depends_on:
       - db
-    requires:
-      - db
     networks:
       - damshique-net
 
