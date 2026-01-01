@@ -2,28 +2,39 @@
     email saannur880@gmail.com
 }
 
-# Handle both root and www for production
-damshique.online, www.damshique.online {
-    # Production-grade reverse proxy with headers
+# Production: Root Domain
+damshique.online {
     reverse_proxy app:3000 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto {scheme}
     }
-
-    # Performance: Compress responses
     encode zstd gzip
-
-    # Security: Standard headers
     header {
         Permissions-Policy interest-cohort=()
         X-Content-Type-Options nosniff
         X-Frame-Options DENY
         Referrer-Policy no-referrer-when-downgrade
     }
-
     log {
         output file /data/caddy_access.log
+    }
+}
+
+# Production: WWW Domain
+www.damshique.online {
+    reverse_proxy app:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    encode zstd gzip
+    header {
+        Permissions-Policy interest-cohort=()
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer-when-downgrade
     }
 }
