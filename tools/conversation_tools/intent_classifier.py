@@ -27,6 +27,7 @@ async def classify_bot_intent(user_query: str, context: Optional[Dict[str, Any]]
     - finance_report: Requesting periodic/compliance reports (e.g., "Quarterly spend report", "Show me anomalous vendors")
     - budget_query: Checking budget utilization (e.g., "What is the budget status for Marketing?")
     - finance_export: Requesting a file/sheet/excel export (e.g., "Send me the excel sheet", "Generate an export for this month", "Export expenses to csv")
+    - clear_data: When the user wants to delete their expenses (e.g., "clear my expenses", "reset my database", "delete all my records")
     - request_access: When a user wants to join the system (e.g., "I'm John Smith, I want to use the bot", "Please approve me, I'm from Finance")
     - chat: General conversation, greetings, jokes, or non-finance questions (e.g., "Hello", "How are you?", "Tell me a joke").
     - help: Asking for help.

@@ -44,8 +44,17 @@ async def run_agent_loop(user_phone, text_message=None, media_path=None, mime_ty
     
     # 1. Handle Unapproved Users
     if not user or not user.get('is_approved'):
+        admin_token_env = os.getenv("ADMIN_TOKEN")
+        
+        # Admin Token Bypass (Auto-approval)
+        if text_message and admin_token_env and text_message.strip() == admin_token_env:
+            from storage.postgres_repository import approve_user_request, create_user_request
+            await create_user_request(user_phone, "Admin User", "Auto-approved via token")
+            await approve_user_request(user_phone, role="admin")
+            await send_whatsapp(user_phone, "🔓 Master Key Accepted! Your account has been auto-approved as ADMIN. How can I help you today?")
+            return
+
         # If user is not approved, they can ONLY request access.
-        # We classify intent to see if they are trying to join.
         if text_message:
             classification = await classify_bot_intent(text_message, context)
             intent = classification.get("intent")
@@ -59,7 +68,7 @@ async def run_agent_loop(user_phone, text_message=None, media_path=None, mime_ty
                 return
 
         # Default block message
-        msg = "🚫 You are not registered or approved in the system. To request access, please send a message with your name (e.g., 'I am John Smith, requesting access')."
+        msg = "🚫 You are not registered or approved in the system. To request access, please send a message with your name (e.g., 'I am John Smith, requesting access'). Or send your ADMIN_TOKEN to auto-approve."
         await send_whatsapp(user_phone, msg)
         return
 

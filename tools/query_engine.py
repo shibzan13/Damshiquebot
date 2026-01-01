@@ -42,6 +42,12 @@ class QueryEngine:
                 target_user_id = user_id if role != "admin" else None
                 file_path = await generate_custom_export(user_id=target_user_id) 
                 return {"export_file": file_path, "query_meta": {"intent": "finance_export"}}
+            elif intent == "clear_data":
+                if role != "admin":
+                    await conn.execute("DELETE FROM invoices WHERE user_id = $1", user_id)
+                else:
+                    await conn.execute("DELETE FROM invoices") # Master clear for admin
+                return {"results": [], "query_meta": {"intent": "clear_data", "success": True}}
             elif intent == "chat":
                  # Pass through to response generator for pure conversation
                  return {"results": [], "query_meta": {"intent": "chat"}}
