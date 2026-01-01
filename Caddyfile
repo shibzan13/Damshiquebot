@@ -1,9 +1,18 @@
-# Main Domain
+{
+    email saannur880@gmail.com
+}
+
 damshique.online {
+    # Enable logging to see actual traffic
+    log {
+        output file /data/caddy_access.log
+    }
+
+    # Proxy to the app
     reverse_proxy app:3000
 }
 
-# Fallback / IP Access
+# Fallback for IP access (HTTP only)
 :80 {
     reverse_proxy app:3000
 }

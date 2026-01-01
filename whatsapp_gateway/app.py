@@ -39,11 +39,18 @@ app.include_router(analytics_router)
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, replace with specific origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"📡 Incoming: {request.method} {request.url.path}")
+    response = await call_next(request)
+    print(f"🚦 Outgoing: {request.method} {request.url.path} -> {response.status_code}")
+    return response
 
 WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "agentic_token")
 WA_TOKEN = os.getenv("WA_TOKEN")
