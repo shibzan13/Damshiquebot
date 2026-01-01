@@ -2,7 +2,8 @@
     email saannur880@gmail.com
 }
 
-damshique.online {
+# Handle both root and www for production
+damshique.online, www.damshique.online {
     # Production-grade reverse proxy with headers
     reverse_proxy app:3000 {
         header_up Host {host}
