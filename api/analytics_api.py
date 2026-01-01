@@ -18,17 +18,25 @@ async def verify_admin(
     authorization: Optional[str] = Header(None),
     token: Optional[str] = None
 ):
-    # Try different sources
+    # Log for server-side diagnosis
     incoming = x_api_token or token
-    
     if not incoming and authorization and authorization.startswith("Bearer "):
         incoming = authorization.replace("Bearer ", "")
-        
-    print(f"DEBUG: Auth attempt with token: {incoming[:5] if incoming else 'None'}...")
     
-    if not incoming or incoming not in VALID_TOKENS:
-        print(f"DEBUG: Unauthorized - Token '{incoming[:5] if incoming else 'None'}' not in {VALID_TOKENS}")
-        raise HTTPException(status_code=403, detail="Unauthorized")
+    # Very verbose error for debugging
+    if not incoming:
+        print(f"DEBUG: Auth Check Failed (Analytics) - No token found.")
+        raise HTTPException(
+            status_code=403, 
+            detail="Forbidden: No API Token provided."
+        )
+        
+    if incoming not in VALID_TOKENS:
+        print(f"DEBUG: Auth Check Failed (Analytics) - Token '{incoming[:8]}...' is not valid.")
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Forbidden: Invalid API Token '{incoming[:5]}...'."
+        )
         
     return incoming
 

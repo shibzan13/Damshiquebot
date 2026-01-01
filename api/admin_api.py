@@ -45,17 +45,25 @@ async def verify_admin(
     authorization: Optional[str] = Header(None),
     token: Optional[str] = None
 ):
-    # Try different sources
+    # Log for server-side diagnosis
     incoming = x_api_token or token
-    
     if not incoming and authorization and authorization.startswith("Bearer "):
         incoming = authorization.replace("Bearer ", "")
-        
-    print(f"DEBUG: Auth attempt with token: {incoming[:5] if incoming else 'None'}...")
     
-    if not incoming or incoming not in VALID_TOKENS:
-        print(f"DEBUG: Unauthorized - Token '{incoming[:5] if incoming else 'None'}' not in {VALID_TOKENS}")
-        raise HTTPException(status_code=403, detail="Unauthorized admin access")
+    # Very verbose error for debugging
+    if not incoming:
+        print(f"DEBUG: Auth Check Failed - No token found in headers or params.")
+        raise HTTPException(
+            status_code=403, 
+            detail="Forbidden: No API Token provided. Expected 'X-API-Token' header or 'Authorization: Bearer' token."
+        )
+        
+    if incoming not in VALID_TOKENS:
+        print(f"DEBUG: Auth Check Failed - Token '{incoming[:8]}...' is not valid.")
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Forbidden: Invalid API Token '{incoming[:5]}...'. Please check your configuration."
+        )
         
     return incoming
 
@@ -355,6 +363,7 @@ async def get_stats(token: str = Depends(verify_admin)):
             pass
         
         return {
+            "version": "v1.25-debug",
             "employees": user_count, 
             "merchants": merchant_count,
             "invoices": invoice_count,
