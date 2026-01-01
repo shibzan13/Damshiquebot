@@ -1,0 +1,28 @@
+{
+    email saannur880@gmail.com
+}
+
+damshique.online {
+    # Production-grade reverse proxy with headers
+    reverse_proxy app:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Performance: Compress responses
+    encode zstd gzip
+
+    # Security: Standard headers
+    header {
+        Permissions-Policy interest-cohort=()
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer-when-downgrade
+    }
+
+    log {
+        output file /data/caddy_access.log
+    }
+}
