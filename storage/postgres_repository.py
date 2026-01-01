@@ -8,14 +8,17 @@ from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger(__name__)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
 import asyncio
 
 async def get_db_connection(retries=5, delay=2):
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        logger.error("❌ DATABASE_URL not set in environment!")
+        return None
+        
     for i in range(retries):
         try:
-            conn = await asyncpg.connect(DATABASE_URL)
+            conn = await asyncpg.connect(url)
             return conn
         except Exception as e:
             if i < retries - 1:
@@ -24,6 +27,20 @@ async def get_db_connection(retries=5, delay=2):
             else:
                 logger.error(f"PostgreSQL connection failed after {retries} attempts: {e}")
                 return None
+
+async def check_db_health():
+    """ Returns True if DB is reachable and migrations are likely applied. """
+    conn = await get_db_connection(retries=1)
+    if not conn: return False, "Unreachable"
+    try:
+        exists = await conn.fetchval("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'invoices')")
+        if exists:
+            return True, "Healthy"
+        return False, "Tables Missing"
+    except Exception as e:
+        return False, str(e)
+    finally:
+        await conn.close()
 
 def generate_invoice_hash(data: Dict[str, Any]) -> str:
     """

@@ -54,6 +54,16 @@ async def startup():
     NotificationEngine.set_broadcaster(manager.broadcast)
     print("🚀 Agentic Expense System Ready")
 
+@app.get("/health")
+async def health_check():
+    from storage.postgres_repository import check_db_health
+    is_healthy, detail = await check_db_health()
+    return {
+        "status": "healthy" if is_healthy else "degraded",
+        "database": detail,
+        "environment": os.getenv("ENV", "production")
+    }
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)

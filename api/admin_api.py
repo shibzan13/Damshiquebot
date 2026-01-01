@@ -40,7 +40,7 @@ FRONTEND_LEGACY_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28
 
 VALID_TOKENS = {ADMIN_TOKEN_ENV, FRONTEND_LEGACY_TOKEN, "default_secret_token"}
 
-async def verify_admin(x_api_token: str = Header(None), token: Optional[str] = None):
+async def verify_admin(x_api_token: str = Header(None, alias="X-API-Token"), token: Optional[str] = None):
     final_token = x_api_token or token
     if not final_token or final_token not in VALID_TOKENS:
         raise HTTPException(status_code=403, detail="Unauthorized admin access")
