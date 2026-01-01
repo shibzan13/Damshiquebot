@@ -96,30 +96,30 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     {/* Predictive Stats */}
-                    {predictive && (
+                    {predictive && typeof predictive === 'object' && !predictive.error && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
                             <TrendStatCard
                                 title="Current Month Spend"
-                                value={`${predictive.current_spend.toLocaleString()} AED`}
+                                value={`${(predictive.current_spend || 0).toLocaleString()} AED`}
                                 change={predictive.variance_percentage}
                                 icon={<DollarSign size={24} />}
                                 color="#3b82f6"
                             />
                             <TrendStatCard
                                 title="Projected Month-End"
-                                value={`${Math.round(predictive.projected_spend).toLocaleString()} AED`}
+                                value={`${Math.round(predictive.projected_spend || 0).toLocaleString()} AED`}
                                 icon={<TrendingUp size={24} />}
                                 color="#8b5cf6"
                             />
                             <TrendStatCard
                                 title="Daily Average"
-                                value={`${Math.round(predictive.daily_average).toLocaleString()} AED`}
+                                value={`${Math.round(predictive.daily_average || 0).toLocaleString()} AED`}
                                 icon={<ShoppingCart size={24} />}
                                 color="#10b981"
                             />
                             <TrendStatCard
                                 title="Anomalies Detected"
-                                value={anomalies.length}
+                                value={Array.isArray(anomalies) ? anomalies.length : 0}
                                 icon={<AlertTriangle size={24} />}
                                 color="#ef4444"
                             />
@@ -141,10 +141,10 @@ export default function AnalyticsDashboard() {
                         <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>Category Breakdown</h2>
                         {loading ? <ChartSkeleton /> : <CategoryPieChart data={categoryData} />}
                         <div style={{ marginTop: 20 }}>
-                            {categoryData.slice(0, 5).map((cat, i) => (
+                            {Array.isArray(categoryData) && categoryData.slice(0, 5).map((cat: any, i: number) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                    <span style={{ fontSize: 14, fontWeight: 600, color: '#64748b' }}>{cat.name}</span>
-                                    <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{cat.value.toLocaleString()} AED ({cat.percentage}%)</span>
+                                    <span style={{ fontSize: 14, fontWeight: 600, color: '#64748b' }}>{cat.name || "Unknown"}</span>
+                                    <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{(cat.value || 0).toLocaleString()} AED ({cat.percentage || 0}%)</span>
                                 </div>
                             ))}
                         </div>

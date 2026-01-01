@@ -411,7 +411,7 @@ async def log_bot_interaction(user_id: str, query: str, response: str, intent: s
 
 async def get_report_stats():
     conn = await get_db_connection()
-    if not conn: return {}
+    if not conn: return {"stats": {"total_spend": 0, "total_invoices": 0, "user_count": 0, "avg_invoice": 0}, "revenueData": [], "distribution": [], "topProducts": [], "topCustomers": []}
     try:
         # 1. Basic Stats
         total_spend = await conn.fetchval("SELECT SUM(total_amount) FROM invoices WHERE status = 'approved'") or 0
@@ -420,45 +420,56 @@ async def get_report_stats():
         user_count = await conn.fetchval("SELECT COUNT(*) FROM system_users") or 0
         
         # 2. Spend by Month (last 6 months)
-        monthly_spend = await conn.fetch("""
-            SELECT TO_CHAR(invoice_date, 'Mon') as month, SUM(total_amount) as revenue, COUNT(*) as orders
-            FROM invoices
-            WHERE invoice_date >= CURRENT_DATE - INTERVAL '6 months'
-            GROUP BY TO_CHAR(invoice_date, 'Mon'), DATE_TRUNC('month', invoice_date)
-            ORDER BY DATE_TRUNC('month', invoice_date)
-        """)
+        monthly_spend = []
+        try:
+            monthly_spend = await conn.fetch("""
+                SELECT TO_CHAR(invoice_date, 'Mon') as month, SUM(total_amount) as revenue, COUNT(*) as orders
+                FROM invoices
+                WHERE invoice_date >= CURRENT_DATE - INTERVAL '6 months'
+                GROUP BY TO_CHAR(invoice_date, 'Mon'), DATE_TRUNC('month', invoice_date)
+                ORDER BY DATE_TRUNC('month', invoice_date)
+            """)
+        except: pass
         
         # 3. Spend by Category
-        # Calculate total for percentage
         total_approved = await conn.fetchval("SELECT SUM(total_amount) FROM invoices WHERE status = 'approved'") or 1
-        category_spend = await conn.fetch("""
-            SELECT COALESCE(cost_center, 'General') as label, 
-                   (SUM(total_amount) * 100.0 / $1) as value
-            FROM invoices
-            WHERE status = 'approved'
-            GROUP BY cost_center
-            ORDER BY value DESC
-            LIMIT 5
-        """, total_approved)
+        category_spend = []
+        try:
+            category_spend = await conn.fetch("""
+                SELECT COALESCE(cost_center, 'General') as label, 
+                       (SUM(total_amount) * 100.0 / $1) as value
+                FROM invoices
+                WHERE status = 'approved'
+                GROUP BY cost_center
+                ORDER BY value DESC
+                LIMIT 5
+            """, total_approved)
+        except: pass
         
         # 4. Top Vendors
-        top_vendors = await conn.fetch("""
-            SELECT vendor_name as name, COUNT(*) as sales, SUM(total_amount) as revenue
-            FROM invoices
-            GROUP BY vendor_name
-            ORDER BY revenue DESC
-            LIMIT 5
-        """)
+        top_vendors = []
+        try:
+            top_vendors = await conn.fetch("""
+                SELECT vendor_name as name, COUNT(*) as sales, SUM(total_amount) as revenue
+                FROM invoices
+                GROUP BY vendor_name
+                ORDER BY revenue DESC
+                LIMIT 5
+            """)
+        except: pass
         
         # 5. Top Employees
-        top_users = await conn.fetch("""
-            SELECT u.name, COUNT(i.invoice_id) as orders, COALESCE(SUM(i.total_amount), 0) as revenue
-            FROM system_users u
-            LEFT JOIN invoices i ON i.user_id = u.phone
-            GROUP BY u.name
-            ORDER BY revenue DESC
-            LIMIT 5
-        """)
+        top_users = []
+        try:
+            top_users = await conn.fetch("""
+                SELECT u.name, COUNT(i.invoice_id) as orders, COALESCE(SUM(i.total_amount), 0) as revenue
+                FROM system_users u
+                LEFT JOIN invoices i ON i.user_id = u.phone
+                GROUP BY u.name
+                ORDER BY revenue DESC
+                LIMIT 5
+            """)
+        except: pass
         
         return {
             "stats": {
@@ -472,6 +483,9 @@ async def get_report_stats():
             "topProducts": [dict(r) for r in top_vendors] if top_vendors else [],
             "topCustomers": [dict(r) for r in top_users] if top_users else []
         }
+    except Exception as e:
+        print(f"DB Error (report_stats): {e}")
+        return {"stats": {"total_spend": 0, "total_invoices": 0, "user_count": 0, "avg_invoice": 0}, "revenueData": [], "distribution": [], "topProducts": [], "topCustomers": []}
     finally:
         await conn.close()
 
@@ -487,6 +501,9 @@ async def get_bot_activity_logs():
             LIMIT 50
         """)
         return [dict(r) for r in rows]
+    except Exception as e:
+        print(f"DB Error (bot_activity): {e}")
+        return []
     finally:
         await conn.close()
 
@@ -502,6 +519,9 @@ async def get_audit_logs():
             LIMIT 100
         """)
         return [dict(r) for r in rows]
+    except Exception as e:
+        print(f"DB Error (audit_logs): {e}")
+        return []
     finally:
         await conn.close()
 
@@ -520,6 +540,9 @@ async def get_merchants():
             ORDER BY total_spend DESC
         """)
         return [dict(r) for r in rows]
+    except Exception as e:
+        print(f"DB Error (merchants): {e}")
+        return []
     finally:
         await conn.close()
 

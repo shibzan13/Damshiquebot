@@ -14,9 +14,9 @@ export default function BotActivityDashboard() {
       .then(r => r.json())
       .then(data => {
         setActivities(data);
-        setLoading(false);
       })
-      .catch(err => console.error("Failed to fetch bot activity:", err));
+      .catch(err => console.error("Failed to fetch bot activity:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   const stats = [

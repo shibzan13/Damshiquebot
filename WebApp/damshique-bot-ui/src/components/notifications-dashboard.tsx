@@ -61,7 +61,7 @@ export default function NotificationsDashboard() {
 
                 {loading ? (
                     <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>Syncing with system events...</div>
-                ) : notifications.length === 0 ? (
+                ) : !Array.isArray(notifications) || notifications.length === 0 ? (
                     <div style={{ textAlign: "center", padding: 60, background: "white", borderRadius: 24, border: "1px solid #e2e8f0" }}>
                         <Bell size={48} color="#cbd5e1" style={{ marginBottom: 16 }} />
                         <div style={{ fontSize: 18, fontWeight: 700, color: "#0f172a" }}>No notifications yet</div>

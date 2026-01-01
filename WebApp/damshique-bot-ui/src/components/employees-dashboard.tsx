@@ -19,9 +19,9 @@ export default function EmployeesDashboard() {
       .then(r => r.json())
       .then(data => {
         setEmployees(data);
-        setLoading(false);
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {

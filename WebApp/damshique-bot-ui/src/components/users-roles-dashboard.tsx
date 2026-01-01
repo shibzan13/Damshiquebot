@@ -19,8 +19,10 @@ export default function UsersRolesDashboard() {
     try {
       const uRes = await fetch("/api/admin/users", { headers: { 'X-API-Token': ADMIN_TOKEN } });
       const rRes = await fetch("/api/admin/requests", { headers: { 'X-API-Token': ADMIN_TOKEN } });
-      const uData = await uRes.json();
-      const rData = await rRes.json();
+      const uDataRaw = await uRes.json();
+      const rDataRaw = await rRes.json();
+      const uData = Array.isArray(uDataRaw) ? uDataRaw : [];
+      const rData = Array.isArray(rDataRaw) ? rDataRaw : [];
 
       setUsers(uData);
       setRequests(rData);
@@ -156,9 +158,9 @@ export default function UsersRolesDashboard() {
                 {users.map((user: any) => (
                   <div key={user.phone} style={{ padding: 20, background: "#f8fafc", borderRadius: 12, border: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", gap: 16, alignItems: "center", flex: 1 }}>
-                      <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700 }}>{user.name[0]}</div>
+                      <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700 }}>{(user.name || "U")[0]}</div>
                       <div>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>{user.name}</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>{user.name || "Unknown User"}</div>
                         <div style={{ fontSize: 13, color: "#64748b" }}>{user.phone} • {user.role}</div>
                       </div>
                     </div>
@@ -179,9 +181,9 @@ export default function UsersRolesDashboard() {
                 {requests.map((req: any) => (
                   <div key={req.phone} style={{ padding: 20, background: "#fffbeb", borderRadius: 12, border: "1px solid #fef3c7", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", gap: 16, alignItems: "center", flex: 1 }}>
-                      <div style={{ width: 48, height: 48, borderRadius: 12, background: "#f59e0b", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700 }}>{req.name[0]}</div>
+                      <div style={{ width: 48, height: 48, borderRadius: 12, background: "#f59e0b", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700 }}>{(req.name || "R")[0]}</div>
                       <div>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>{req.name}</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>{req.name || "New User"}</div>
                         <div style={{ fontSize: 13, color: "#64748b" }}>{req.phone} • {req.details || "Requesting access"}</div>
                       </div>
                     </div>

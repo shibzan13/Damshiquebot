@@ -17,9 +17,9 @@ export default function ReportsDashboard() {
       .then(r => r.json())
       .then(d => {
         setData(d);
-        setLoading(false);
       })
-      .catch(err => console.error("Failed to fetch reports:", err));
+      .catch(err => console.error("Failed to fetch reports:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading || !data) {

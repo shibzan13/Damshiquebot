@@ -15,9 +15,9 @@ export default function AuditLogsDashboard() {
       .then(r => r.json())
       .then(data => {
         setLogs(data);
-        setLoading(false);
       })
-      .catch(err => console.error("Failed to fetch audit logs:", err));
+      .catch(err => console.error("Failed to fetch audit logs:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   const stats = [

@@ -17,9 +17,9 @@ export default function MerchantsDashboard() {
       .then(r => r.json())
       .then(data => {
         setMerchants(data);
-        setLoading(false);
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {

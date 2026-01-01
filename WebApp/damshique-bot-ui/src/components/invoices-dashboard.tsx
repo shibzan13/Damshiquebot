@@ -150,7 +150,7 @@ export default function InvoicesDashboard() {
     );
   };
 
-  const filteredInvoices = invoices.filter(inv => {
+  const filteredInvoices = Array.isArray(invoices) ? invoices.filter(inv => {
     const matchesSearch =
       inv.vendor_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.user_id?.includes(searchQuery) ||
@@ -163,7 +163,7 @@ export default function InvoicesDashboard() {
       (!dateRange.end || invDate <= dateRange.end);
 
     return matchesSearch && matchesStatus && matchesDate;
-  });
+  }) : [];
 
   const getStatusStyle = (status: string) => {
     switch (status?.toLowerCase()) {
