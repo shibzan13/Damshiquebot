@@ -39,8 +39,8 @@ services:
     build: .
     container_name: damshique_app
     restart: always
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin_password}@db:5432/${POSTGRES_DB:-expense_tracker}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
