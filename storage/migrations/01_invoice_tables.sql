@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS invoices (
     parent_invoice_id UUID,
     compliance_flags JSONB, -- Results of validation engine
     cost_center TEXT,
+    category TEXT, -- Added for analytics and classification
     project_id TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

@@ -10,13 +10,20 @@ logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-async def get_db_connection():
-    try:
-        conn = await asyncpg.connect(DATABASE_URL)
-        return conn
-    except Exception as e:
-        logger.error(f"PostgreSQL connection error: {e}")
-        return None
+import asyncio
+
+async def get_db_connection(retries=5, delay=2):
+    for i in range(retries):
+        try:
+            conn = await asyncpg.connect(DATABASE_URL)
+            return conn
+        except Exception as e:
+            if i < retries - 1:
+                logger.warning(f"PostgreSQL connection attempt {i+1} failed: {e}. Retrying in {delay}s...")
+                await asyncio.sleep(delay)
+            else:
+                logger.error(f"PostgreSQL connection failed after {retries} attempts: {e}")
+                return None
 
 def generate_invoice_hash(data: Dict[str, Any]) -> str:
     """
@@ -299,7 +306,7 @@ async def reject_user_request(phone: str):
         await conn.close()
 
 async def run_pg_migrations():
-    """ Runs the PostgreSQL migration script statement by statement. """
+    """ Runs all SQL migrations in the migrations directory. """
     url = os.getenv("DATABASE_URL")
     if not url:
         logger.error("❌ DATABASE_URL not found in environment!")
@@ -311,68 +318,55 @@ async def run_pg_migrations():
         return
     
     try:
-        migration_path = os.path.join(os.getcwd(), "storage", "migrations", "01_invoice_tables.sql")
-        if not os.path.exists(migration_path):
+        # Get all .sql files in storage/migrations
+        migration_dir = os.path.join(os.getcwd(), "storage", "migrations")
+        if not os.path.exists(migration_dir):
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            migration_path = os.path.join(script_dir, "migrations", "01_invoice_tables.sql")
+            migration_dir = os.path.join(script_dir, "migrations")
             
-        if not os.path.exists(migration_path):
-            logger.error(f"❌ Migration file NOT FOUND: {migration_path}")
+        if not os.path.exists(migration_dir):
+            logger.error(f"❌ Migration directory NOT FOUND: {migration_dir}")
             return
 
-        with open(migration_path, "r") as f:
-            content = f.read()
-            
-        logger.info("🚀 Starting statement-by-statement migration...")
+        migration_files = sorted([f for f in os.listdir(migration_dir) if f.endswith(".sql")])
+        
+        logger.info(f"🚀 Found {len(migration_files)} migration files. Starting migration...")
         
         # 1. Try to enable uuid-ossp separately
         try:
             await conn.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
             logger.info("✅ uuid-ossp extension enabled.")
         except Exception as e:
-            logger.warning(f"⚠️ Could not enable uuid-ossp (might already exist or permission denied): {e}")
+            logger.warning(f"⚠️ Could not enable uuid-ossp: {e}")
 
-        # 2. Execute the rest of the file
-        try:
-            await conn.execute(content)
-            logger.info("✅ Full migration script executed.")
-            
-            # --- CUSTOM PATCHES ---
-            # Patch 1: bot_activity
-            await conn.execute("""
-                CREATE TABLE IF NOT EXISTS bot_interactions (
-                    interaction_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                    user_id TEXT NOT NULL,
-                    query TEXT NOT NULL,
-                    response TEXT NOT NULL,
-                    intent TEXT,
-                    confidence NUMERIC(5, 4),
-                    channel TEXT DEFAULT 'whatsapp', -- 'whatsapp' or 'webapp'
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-                );
-            """)
-            logger.info("✅ bot_interactions table verified.")
+        for filename in migration_files:
+            file_path = os.path.join(migration_dir, filename)
+            logger.info(f"📜 Applying migration: {filename}...")
+            with open(file_path, "r") as f:
+                content = f.read()
+                try:
+                    await conn.execute(content)
+                    logger.info(f"✅ {filename} applied.")
+                except Exception as e:
+                    logger.error(f"❌ Error applying {filename}: {e}")
 
-            # Patch 2: Conversation History
-            try:
-                # Direct check/create for chat history if sql file fails or just to be safe inline
-                await conn.execute("""
-                    CREATE TABLE IF NOT EXISTS conversation_history (
-                        id SERIAL PRIMARY KEY,
-                        user_id VARCHAR(50) NOT NULL REFERENCES system_users(phone),
-                        role VARCHAR(10) CHECK (role IN ('user', 'bot')),
-                        content TEXT,
-                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    );
-                    CREATE INDEX IF NOT EXISTS idx_conversation_history_user_id ON conversation_history(user_id);
-                """)
-                logger.info("✅ conversation_history table verified.")
-            except Exception as e:
-                logger.error(f"Failed to create conversation_history: {e}")
+        # --- CUSTOM PATCHES (Idempotent) ---
+        # Bot Interaction Table Patch
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS bot_interactions (
+                interaction_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id TEXT NOT NULL,
+                query TEXT NOT NULL,
+                response TEXT NOT NULL,
+                intent TEXT,
+                confidence NUMERIC(5, 4),
+                channel TEXT DEFAULT 'whatsapp',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+            ALTER TABLE invoices ADD COLUMN IF NOT EXISTS category TEXT;
+        """)
+        logger.info("✅ Custom patches verified.")
 
-        except Exception as e:
-            logger.error(f"❌ Error during migration execution: {e}")
-            
         # 3. Final Verification
         exists = await conn.fetchval("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'invoices')")
         if exists:

@@ -1,7 +1,9 @@
-# Replace 'your-domain.com' with your actual domain name.
-# Example: expense-ai.damshique.com
-
+# Main Domain
 damshique.online {
-    # Proxy all traffic to the backend application container
+    reverse_proxy app:3000
+}
+
+# Fallback / IP Access
+:80 {
     reverse_proxy app:3000
 }

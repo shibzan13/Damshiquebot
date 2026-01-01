@@ -143,7 +143,47 @@ async def download_wa_media(media_id, mime_type):
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# Serve Frontend Static Files - MOVED TO END to avoid hijacking POST/GET routes
-build_dir = "webapp/damshique-bot-ui/dist"
+# Serve Frontend Static Files
+build_dir = os.path.join(os.getcwd(), "WebApp", "damshique-bot-ui", "dist")
+actual_build_dir = build_dir
+
+@app.on_event("startup")
+async def verify_static_dir():
+    global actual_build_dir
+    print(f"📂 Current Working Directory: {os.getcwd()}")
+    print(f"📂 Looking for static files in: {build_dir}")
+    if os.path.exists(build_dir):
+        print(f"✅ Static directory found! Contents: {os.listdir(build_dir)}")
+        actual_build_dir = build_dir
+    else:
+        # Try a fallback if we are running inside the whatsapp_gateway directory
+        fallback_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "WebApp", "damshique-bot-ui", "dist"))
+        if os.path.exists(fallback_dir):
+            print(f"✅ Found static files in fallback: {fallback_dir}")
+            actual_build_dir = fallback_dir
+        else:
+            print(f"❌ Static directory NOT FOUND. CWD contents: {os.listdir(os.getcwd())}")
+
+# SPA 404 Handler: Redirect unknown web routes to index.html
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.responses import FileResponse
+
+@app.exception_handler(404)
+async def spa_exception_handler(request, exc):
+    path = request.url.path
+    # Serve index.html for non-API routes that aren't file requests
+    if not path.startswith("/api/") and "." not in path.split("/")[-1]:
+        index_path = os.path.join(actual_build_dir, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+    
+    # Otherwise return normal 404
+    from fastapi.responses import JSONResponse
+    return JSONResponse(status_code=404, content={"detail": "Not Found"})
+
+# Mount static files at the root
 if os.path.exists(build_dir):
     app.mount("/", StaticFiles(directory=build_dir, html=True), name="static")
+elif os.path.exists(os.path.abspath(os.path.join(os.getcwd(), "..", "WebApp", "damshique-bot-ui", "dist"))):
+     fallback = os.path.abspath(os.path.join(os.getcwd(), "..", "WebApp", "damshique-bot-ui", "dist"))
+     app.mount("/", StaticFiles(directory=fallback, html=True), name="static")

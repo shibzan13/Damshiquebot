@@ -1,9 +1,9 @@
 # Stage 1: Build the React Frontend
 FROM node:18-alpine as ui-build
 WORKDIR /app/ui
-COPY webapp/damshique-bot-ui/package.json webapp/damshique-bot-ui/package-lock.json ./
+COPY WebApp/damshique-bot-ui/package.json WebApp/damshique-bot-ui/package-lock.json ./
 RUN npm install
-COPY webapp/damshique-bot-ui/ ./
+COPY WebApp/damshique-bot-ui/ ./
 RUN npm run build
 
 # Stage 2: Build the Python Backend
@@ -28,10 +28,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Copy the built frontend from Stage 1 to the location expected by FastAPI
-COPY --from=ui-build /app/ui/dist ./webapp/damshique-bot-ui/dist
+COPY --from=ui-build /app/ui/dist ./WebApp/damshique-bot-ui/dist
 
 # Create necessary directories
-RUN mkdir -exports uploads
+RUN mkdir -p exports uploads
 
 # Expose the API/Web port
 EXPOSE 3000
