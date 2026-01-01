@@ -40,11 +40,24 @@ FRONTEND_LEGACY_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28
 
 VALID_TOKENS = {ADMIN_TOKEN_ENV, FRONTEND_LEGACY_TOKEN, "default_secret_token"}
 
-async def verify_admin(x_api_token: str = Header(None, alias="X-API-Token"), token: Optional[str] = None):
-    final_token = x_api_token or token
-    if not final_token or final_token not in VALID_TOKENS:
+async def verify_admin(
+    x_api_token: Optional[str] = Header(None, alias="X-API-Token"),
+    authorization: Optional[str] = Header(None),
+    token: Optional[str] = None
+):
+    # Try different sources
+    incoming = x_api_token or token
+    
+    if not incoming and authorization and authorization.startswith("Bearer "):
+        incoming = authorization.replace("Bearer ", "")
+        
+    print(f"DEBUG: Auth attempt with token: {incoming[:5] if incoming else 'None'}...")
+    
+    if not incoming or incoming not in VALID_TOKENS:
+        print(f"DEBUG: Unauthorized - Token '{incoming[:5] if incoming else 'None'}' not in {VALID_TOKENS}")
         raise HTTPException(status_code=403, detail="Unauthorized admin access")
-    return final_token
+        
+    return incoming
 
 # --- Invoice APIs ---
 @router.get("/invoices", response_model=List[dict])
@@ -316,7 +329,7 @@ async def admin_chat(payload: Dict[str, Any] = Body(...), token: str = Depends(v
 
 # --- Stats API (Shared) ---
 @router.get("/stats")
-async def get_stats():
+async def get_stats(token: str = Depends(verify_admin)):
     conn = await get_db_connection()
     if not conn:
         return {"error": "Database connection failed"}
