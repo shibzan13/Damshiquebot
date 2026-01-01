@@ -75,10 +75,20 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.get("/webhook")
 async def verify_webhook(request: Request):
+    from fastapi.responses import Response
     params = request.query_params
-    if params.get("hub.mode") == "subscribe" and params.get("hub.verify_token") == WHATSAPP_VERIFY_TOKEN:
-        return int(params.get("hub.challenge"))
-    return "Error"
+    hub_mode = params.get("hub.mode")
+    hub_verify_token = params.get("hub.verify_token")
+    hub_challenge = params.get("hub.challenge")
+    
+    print(f"🔍 Webhook Verification Attempt: mode={hub_mode}, token={hub_verify_token}")
+    
+    if hub_mode == "subscribe" and hub_verify_token == WHATSAPP_VERIFY_TOKEN:
+        print("✅ Webhook Verified Successfully!")
+        return Response(content=str(hub_challenge), media_type="text/plain")
+    
+    print("❌ Webhook Verification Failed!")
+    return Response(content="Verification Failed", status_code=403)
 
 @app.post("/webhook")
 async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
@@ -95,27 +105,38 @@ async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
                 if "messages" in value:
                     for msg in value["messages"]:
                         user_phone = msg.get("from")
+                        msg_id = msg.get("id")
+                        print(f"📩 Processing message {msg_id} from {user_phone}")
                         
-                        # 2. Handle Message
+                        # Handle Media
                         media_path = None
                         mime_type = None
                         
                         if "image" in msg:
+                            print(f"📸 Image detected in message {msg_id}")
                             image_id = msg["image"]["id"]
                             mime_type = msg["image"].get("mime_type", "image/jpeg")
                             media_path = await download_wa_media(image_id, mime_type)
                         elif "document" in msg:
+                            print(f"📄 Document detected in message {msg_id}")
                             doc_id = msg["document"]["id"]
                             mime_type = msg["document"].get("mime_type", "application/pdf")
                             media_path = await download_wa_media(doc_id, mime_type)
+                        elif "audio" in msg:
+                            print(f"🔊 Audio detected (not supported yet) in {msg_id}")
 
                         text_body = msg.get("text", {}).get("body", "") if "text" in msg else None
                         
-                        # Use orchestrator
+                        # For images/docs with captions
+                        if not text_body:
+                            if "image" in msg: text_body = msg["image"].get("caption")
+                            elif "document" in msg: text_body = msg["document"].get("caption")
+
                         document_id = None
                         if "image" in msg: document_id = msg["image"]["id"]
                         elif "document" in msg: document_id = msg["document"]["id"]
 
+                        print(f"🏃 Handing off to Agent Orchestrator for {user_phone}...")
                         background_tasks.add_task(run_agent_loop, user_phone, text_body, media_path, mime_type, document_id)
         
         return {"status": "ok"}
