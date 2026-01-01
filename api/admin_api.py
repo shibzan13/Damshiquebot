@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, HTTPException, Depends, Body
+from fastapi import APIRouter, Header, HTTPException, Depends, Body, Request
 from typing import Optional, List, Dict, Any
 from storage.postgres_repository import (
     get_all_invoices, 
@@ -41,31 +41,41 @@ FRONTEND_LEGACY_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28
 VALID_TOKENS = {ADMIN_TOKEN_ENV, FRONTEND_LEGACY_TOKEN, "default_secret_token"}
 
 async def verify_admin(
+    request: Request,
     x_api_token: Optional[str] = Header(None, alias="X-API-Token"),
     authorization: Optional[str] = Header(None),
     token: Optional[str] = None
 ):
-    # Log for server-side diagnosis
-    incoming = x_api_token or token
-    if not incoming and authorization and authorization.startswith("Bearer "):
-        incoming = authorization.replace("Bearer ", "")
+    # Log incoming headers for deep debugging if needed
+    # print(f"DEBUG: Headers: {dict(request.headers)}")
     
-    # Very verbose error for debugging
-    if not incoming:
-        print(f"DEBUG: Auth Check Failed - No token found in headers or params.")
-        raise HTTPException(
-            status_code=403, 
-            detail="Forbidden: No API Token provided. Expected 'X-API-Token' header or 'Authorization: Bearer' token."
-        )
+    # 1. Try X-API-Token (case-insensitive)
+    incoming = x_api_token
+    
+    # 2. Try URL parameter
+    if not incoming: incoming = token
+    
+    # 3. Try Bearer token
+    if not incoming and authorization and "Bearer " in authorization:
+        incoming = authorization.split("Bearer ")[-1].strip()
         
-    if incoming not in VALID_TOKENS:
-        print(f"DEBUG: Auth Check Failed - Token '{incoming[:8]}...' is not valid.")
-        raise HTTPException(
-            status_code=403, 
-            detail=f"Forbidden: Invalid API Token '{incoming[:5]}...'. Please check your configuration."
-        )
-        
-    return incoming
+    # Standardize on the legacy token if nothing else matches but we want to allow it
+    # We'll be very explicit here
+    ALLOWED = {
+        "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7",
+        str(os.getenv("ADMIN_TOKEN")),
+        str(os.getenv("ADMIN_API_TOKEN")),
+        "default_secret_token"
+    }
+
+    if incoming in ALLOWED and incoming is not None and incoming != "None" and incoming != "":
+        return incoming
+
+    print(f"DEBUG: Auth DENIED for token: {incoming[:5] if incoming else 'NONE'}")
+    raise HTTPException(
+        status_code=403, 
+        detail=f"RELAY_ERROR: Access Denied. Token mismatch. System expecting one of {len(ALLOWED)} valid keys."
+    )
 
 # --- Invoice APIs ---
 @router.get("/invoices", response_model=List[dict])
