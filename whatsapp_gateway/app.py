@@ -92,9 +92,11 @@ async def verify_webhook(request: Request):
 
 @app.post("/webhook")
 async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
+    print(f"--- WEBHOOK HIT: {request.method} {request.url.path} ---")
     try:
-        data = await request.json()
-        print(f"📩 Webhook received: {json.dumps(data, indent=2)}")
+        raw_body = await request.body()
+        print(f"📦 RAW BODY: {raw_body.decode('utf-8')}")
+        data = json.loads(raw_body)
         
         if data.get("object") != "whatsapp_business_account":
             return {"status": "ok"}
