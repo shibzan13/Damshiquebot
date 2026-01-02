@@ -32,6 +32,7 @@ from tools.export_tools import (
 from fastapi.responses import FileResponse
 from tools.messaging_tools.whatsapp import send_whatsapp
 import os
+import uuid
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -131,10 +132,26 @@ async def bulk_invoice_action(payload: Dict[str, Any] = Body(...), token: str = 
     if not invoice_ids or not action:
         raise HTTPException(status_code=400, detail="invoice_ids and action are required")
         
+    # Validate UUIDs to prevent database crashes
+    valid_ids = []
+    for i in invoice_ids:
+        try:
+            uuid.UUID(str(i))
+            valid_ids.append(i)
+        except ValueError:
+            print(f"WARNING: Ignored invalid UUID in bulk action: {i}")
+            
+    if not valid_ids:
+        raise HTTPException(status_code=400, detail="No valid UUIDs provided in invoice_ids")
+        
+    invoice_ids = valid_ids
+        
     conn = await get_db_connection()
     if not conn:
         raise HTTPException(status_code=500, detail="Database connection failed")
         
+    print(f"DEBUG: Bulk Action: {action}, IDs: {invoice_ids}")
+    
     try:
         async with conn.transaction():
             if action == "approve":
@@ -150,6 +167,7 @@ async def bulk_invoice_action(payload: Dict[str, Any] = Body(...), token: str = 
                 
         return {"status": "success", "count": len(invoice_ids), "action": action}
     except Exception as e:
+        print(f"ERROR in bulk_invoice_action: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     finally:
         await conn.close()

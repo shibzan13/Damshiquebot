@@ -141,6 +141,41 @@ export default function InvoicesDashboard() {
     );
   };
 
+  const handleSingleDelete = async (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!confirm("Are you sure you want to delete this invoice? This cannot be undone.")) return;
+
+    setIsBulkProcessing(true);
+    try {
+      const res = await fetch("/api/admin/invoices/bulk-action", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Token": getAdminToken()
+        },
+        body: JSON.stringify({
+          invoice_ids: [id],
+          action: 'delete'
+        })
+      });
+
+      if (res.ok) {
+        toast.success("Invoice deleted successfully");
+        if (selectedInvoice && selectedInvoice.invoice_id === id) {
+          setSelectedInvoice(null);
+        }
+        fetchInvoices();
+      } else {
+        toast.error("Failed to delete invoice");
+      }
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Error deleting invoice");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
   const filteredInvoices = Array.isArray(invoices) ? invoices.filter(inv => {
     const matchesSearch =
       inv.vendor_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -328,7 +363,24 @@ export default function InvoicesDashboard() {
                       <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}><User size={16} /></div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>{inv.user_name || "Employee"}</div>
                     </div>
-                    <button onClick={() => setSelectedInvoice(inv)} style={{ padding: "8px 16px", borderRadius: 12, border: "1px solid #e2e8f0", background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 700, transition: "background 0.2s" }} onMouseEnter={(e: any) => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={(e: any) => e.currentTarget.style.background = "#fff"}>Details</button>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={(e) => handleSingleDelete(inv.invoice_id, e)}
+                        style={{
+                          width: 36, height: 36,
+                          borderRadius: 12, border: "1px solid #fee2e2",
+                          background: "#fff", color: "#ef4444",
+                          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                          transition: "all 0.2s"
+                        }}
+                        onMouseEnter={(e: any) => { e.currentTarget.style.background = "#fee2e2"; }}
+                        onMouseLeave={(e: any) => { e.currentTarget.style.background = "#fff"; }}
+                        title="Delete Invoice"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <button onClick={() => setSelectedInvoice(inv)} style={{ padding: "8px 16px", borderRadius: 12, border: "1px solid #e2e8f0", background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 700, transition: "background 0.2s" }} onMouseEnter={(e: any) => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={(e: any) => e.currentTarget.style.background = "#fff"}>Details</button>
+                    </div>
                   </div>
                 </div>
               );
@@ -377,6 +429,7 @@ export default function InvoicesDashboard() {
           invoice={selectedInvoice}
           onClose={() => setSelectedInvoice(null)}
           onProcessed={() => { setSelectedInvoice(null); fetchInvoices(); }}
+          onDelete={() => handleSingleDelete(selectedInvoice.invoice_id)}
         />
       )}
 
@@ -400,7 +453,7 @@ export default function InvoicesDashboard() {
 }
 
 // ... InvoiceDetailsModal remains largely the same, just ensuring imports are available ...
-function InvoiceDetailsModal({ invoice, onClose, onProcessed }: any) {
+function InvoiceDetailsModal({ invoice, onClose, onProcessed, onDelete }: any) {
   const [items, setItems] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isProcessing, setIsProcessing] = React.useState(false);
@@ -520,6 +573,24 @@ function InvoiceDetailsModal({ invoice, onClose, onProcessed }: any) {
                 <ExternalLink size={18} /> View Document
               </a>
             )}
+            <button
+              onClick={onDelete}
+              style={{
+                width: 56,
+                padding: "0",
+                borderRadius: 20,
+                background: "#fee2e2",
+                color: "#ef4444",
+                border: "none",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontWeight: 700,
+                fontSize: 15
+              }}
+              title="Delete Invoice"
+            >
+              <Trash2 size={20} />
+            </button>
             <button
               onClick={handleMarkProcessed}
               disabled={isProcessing || isApproved}
