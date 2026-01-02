@@ -160,6 +160,12 @@ async def persist_invoice_intelligence(
 
 def sanitize_file_url(url: str) -> str:
     if not url: return None
+    
+    # Use pre-signed URLs if it's an S3 URL
+    if "amazonaws.com" in url:
+        from tools.storage_tools.s3_storage import storage_service
+        return storage_service.generate_presigned_url(url)
+        
     # Normalize slashes
     url = url.replace("\\", "/")
     

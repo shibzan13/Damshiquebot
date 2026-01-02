@@ -43,6 +43,34 @@ class S3Storage:
             logger.error(f"Unexpected storage error: {e}")
             return None
 
+    def generate_presigned_url(self, s3_url, expiration=3600):
+        """
+        Converts a permanent S3 URL into a temporary pre-signed URL.
+        """
+        if not s3_url or "amazonaws.com" not in s3_url:
+            return s3_url
+
+        try:
+            # Extract key from URL: https://bucket.s3.region.amazonaws.com/key
+            parts = s3_url.split(".amazonaws.com/")
+            if len(parts) < 2: return s3_url
+            key = parts[1]
+
+            params = {
+                'Bucket': self.bucket_name,
+                'Key': key
+            }
+            
+            response = self.s3_client.generate_presigned_url(
+                'get_object',
+                Params=params,
+                ExpiresIn=expiration
+            )
+            return response
+        except Exception as e:
+            logger.error(f"Presigned URL generation failed: {e}")
+            return s3_url
+
 # Singleton instance
 storage_service = S3Storage()
 

@@ -27,16 +27,20 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
         scrollToBottom();
     }, [messages, loading, isOpen]);
 
+    const lastHandledQuery = useRef<string | null>(null);
     useEffect(() => {
-        if (initialQuery && !hasInitiated.current) {
-            hasInitiated.current = true;
+        if (initialQuery && initialQuery !== lastHandledQuery.current) {
+            lastHandledQuery.current = initialQuery;
             setIsOpen(true);
             handleSend(initialQuery);
         }
     }, [initialQuery]);
 
     const handleSend = async (queryOverride?: string) => {
-        const userMsg = queryOverride || input.trim();
+        let userMsg = queryOverride || input.trim();
+        // Remove uniqueness suffix if coming from home search
+        if (userMsg.includes("||")) userMsg = userMsg.split("||")[0];
+
         if (!userMsg || loading) return;
 
         if (!queryOverride) setInput("");
@@ -246,13 +250,17 @@ function ResultsStructured({ items, summary }: { items: any[], summary: any }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {items.slice(0, 5).map((row, idx) => (
-                                <tr key={idx} style={{ borderBottom: "1px solid #f8fafc" }}>
-                                    <td style={tdStyle}>{new Date(row.invoice_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</td>
-                                    <td style={{ ...tdStyle, fontWeight: 600 }}>{row.vendor_name?.substring(0, 15) || "Unk"}</td>
-                                    <td style={tdStyle}>{row.total_amount}</td>
-                                </tr>
-                            ))}
+                            {items.slice(0, 5).map((row, idx) => {
+                                const dateObj = new Date(row.invoice_date);
+                                const isValidDate = !isNaN(dateObj.getTime());
+                                return (
+                                    <tr key={idx} style={{ borderBottom: "1px solid #f8fafc" }}>
+                                        <td style={tdStyle}>{isValidDate ? dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "Recently"}</td>
+                                        <td style={{ ...tdStyle, fontWeight: 600 }}>{row.vendor_name || "General Merchant"}</td>
+                                        <td style={tdStyle}>{row.total_amount || 0}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                     {items.length > 5 && <div style={{ fontSize: 11, color: "#94a3b8", textAlign: "center", marginTop: 8 }}>+ {items.length - 5} more rows</div>}

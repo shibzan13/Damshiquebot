@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Users, Store, BarChart3, Bot, Search, Menu, X, FileText, Bell, Settings, Clock, Shield, Activity, CheckSquare, History, MessageSquare, TrendingUp } from "lucide-react";
-
+import { Users, Store, BarChart3, Bot, Search, Menu, X, FileText, Bell, Settings, Clock, Shield, Activity, CheckSquare, History, MessageSquare, TrendingUp, LogOut } from "lucide-react";
 import InvoicesDashboard from "./components/invoices-dashboard";
 import EmployeesDashboard from "./components/employees-dashboard";
 import MerchantsDashboard from "./components/merchants-dashboard";
@@ -73,11 +72,17 @@ export default function DamshiqueHome() {
     showToast(`Navigated to ${label}`, "success");
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("admin_token");
+    window.location.href = "/login";
+  };
+
   const handleSearchSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
-    setLastSearchQuery(searchQuery);
+    // Use a timestamp to force AdminChat useEffect to trigger even if text is same
+    setLastSearchQuery(searchQuery + "||" + Date.now());
     setChatOpen(true);
     setSearchQuery("");
     showToast(`Searching for: ${searchQuery}`, "success");
@@ -206,6 +211,8 @@ export default function DamshiqueHome() {
           </div>
           <Bell size={22} color="#64748b" style={{ cursor: "pointer" }} onClick={() => setActiveSection("Notifications")} />
           <Settings size={22} color="#64748b" style={{ cursor: "pointer" }} onClick={() => setActiveSection("Settings")} />
+          <div style={{ width: 1, height: 24, background: "#e2e8f0", margin: "0 4px" }} />
+          <LogOut size={22} color="#f43f5e" style={{ cursor: "pointer" }} onClick={handleLogout} />
         </div>
       </div>
 

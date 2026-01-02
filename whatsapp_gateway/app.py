@@ -128,11 +128,15 @@ async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
                             print(f"📸 Image detected in message {msg_id}")
                             image_id = msg["image"]["id"]
                             mime_type = msg["image"].get("mime_type", "image/jpeg")
+                            # Immediate feedback
+                            background_tasks.add_task(send_whatsapp, user_phone, "📸 I've received your receipt. Processing it now... ⏳")
                             media_path = await download_wa_media(image_id, mime_type)
                         elif "document" in msg:
                             print(f"📄 Document detected in message {msg_id}")
                             doc_id = msg["document"]["id"]
                             mime_type = msg["document"].get("mime_type", "application/pdf")
+                            # Immediate feedback
+                            background_tasks.add_task(send_whatsapp, user_phone, "📄 I've received your document. Reading the details... ⏳")
                             media_path = await download_wa_media(doc_id, mime_type)
                         elif "audio" in msg:
                             print(f"🔊 Audio detected (not supported yet) in {msg_id}")
