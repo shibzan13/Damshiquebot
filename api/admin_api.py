@@ -426,39 +426,43 @@ async def admin_chat(payload: Dict[str, Any] = Body(...), token: str = Depends(v
                     df["amount"] = pd.to_numeric(df["total_amount"], errors='coerce').fillna(0)
                 elif "amount" in df.columns:
                     df["amount"] = pd.to_numeric(df["amount"], errors='coerce').fillna(0)
+                else:
+                    print("Chart generation skipped: No amount column found in results")
                 
-                chart_type = "bar" # Default
-                if "pie" in user_query.lower():
-                    chart_type = "pie"
-                
-                # Determine Grouping
-                group_by = "vendor_name" # Default
-                if "category" in user_query.lower() and "category" in df.columns:
-                    group_by = "category"
-                elif "month" in user_query.lower() or "trend" in user_query.lower():
-                    if "invoice_date" in df.columns:
-                        df["month"] = pd.to_datetime(df["invoice_date"]).dt.strftime('%b %Y')
-                        group_by = "month"
-                        chart_type = "bar" # Force bar for trends
-
-                if group_by in df.columns:
-                    # Aggregate
-                    agg = df.groupby(group_by)["amount"].sum().reset_index()
-                    agg = agg.sort_values("amount", ascending=False).head(10) # Top 10
+                # Only proceed if amount column exists
+                if "amount" in df.columns:
+                    chart_type = "bar" # Default
+                    if "pie" in user_query.lower():
+                        chart_type = "pie"
                     
-                    chart_data = []
-                    for _, row in agg.iterrows():
-                        chart_data.append({
-                            "name": str(row[group_by]),
-                            "value": float(row["amount"])
-                        })
+                    # Determine Grouping
+                    group_by = "vendor_name" # Default
+                    if "category" in user_query.lower() and "category" in df.columns:
+                        group_by = "category"
+                    elif "month" in user_query.lower() or "trend" in user_query.lower():
+                        if "invoice_date" in df.columns:
+                            df["month"] = pd.to_datetime(df["invoice_date"], errors='coerce').dt.strftime('%b %Y')
+                            group_by = "month"
+                            chart_type = "bar" # Force bar for trends
+
+                    if group_by in df.columns:
+                        # Aggregate
+                        agg = df.groupby(group_by)["amount"].sum().reset_index()
+                        agg = agg.sort_values("amount", ascending=False).head(10) # Top 10
                         
-                    if chart_data:
-                        chart_config = {
-                            "type": chart_type,
-                            "title": f"Spend by {group_by.title()}",
-                            "data": chart_data
-                        }
+                        chart_data = []
+                        for _, row in agg.iterrows():
+                            chart_data.append({
+                                "name": str(row[group_by]),
+                                "value": float(row["amount"])
+                            })
+                            
+                        if chart_data:
+                            chart_config = {
+                                "type": chart_type,
+                                "title": f"Spend by {group_by.replace('_', ' ').title()}",
+                                "data": chart_data
+                            }
             except Exception as e:
                 import logging
                 logger = logging.getLogger(__name__)

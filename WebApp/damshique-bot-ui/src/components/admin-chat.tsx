@@ -249,6 +249,7 @@ function ResultsStructured({ items, summary }: { items: any[], summary: any }) {
                                 <th style={thStyle}>Date</th>
                                 <th style={thStyle}>Vendor</th>
                                 <th style={thStyle}>Amt</th>
+                                <th style={thStyle}>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -260,6 +261,33 @@ function ResultsStructured({ items, summary }: { items: any[], summary: any }) {
                                         <td style={tdStyle}>{isValidDate ? dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "Recently"}</td>
                                         <td style={{ ...tdStyle, fontWeight: 600 }}>{row.vendor_name || "General Merchant"}</td>
                                         <td style={tdStyle}>{row.total_amount || 0}</td>
+                                        <td style={tdStyle}>
+                                            {row.file_url && (
+                                                <a
+                                                    href={row.file_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        display: "inline-flex",
+                                                        alignItems: "center",
+                                                        gap: 4,
+                                                        padding: "4px 10px",
+                                                        background: "#3b82f6",
+                                                        color: "#fff",
+                                                        borderRadius: 6,
+                                                        fontSize: 11,
+                                                        fontWeight: 700,
+                                                        textDecoration: "none",
+                                                        transition: "background 0.2s"
+                                                    }}
+                                                    onMouseEnter={(e: any) => e.currentTarget.style.background = "#2563eb"}
+                                                    onMouseLeave={(e: any) => e.currentTarget.style.background = "#3b82f6"}
+                                                >
+                                                    <FileText size={12} />
+                                                    View
+                                                </a>
+                                            )}
+                                        </td>
                                     </tr>
                                 );
                             })}
