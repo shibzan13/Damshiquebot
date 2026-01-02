@@ -412,10 +412,61 @@ async def admin_chat(payload: Dict[str, Any] = Body(...), token: str = Depends(v
     # 6. Log Interaction
     await log_bot_interaction("admin-webapp", user_query, response, intent, 1.0, "webapp")
 
+    # 7. Generate Chart Data (if requested)
+    chart_config = None
+    if "chart" in user_query.lower() or "graph" in user_query.lower():
+        results = query_results.get("results", [])
+        if isinstance(results, list) and len(results) > 0:
+            import pandas as pd
+            try:
+                df = pd.DataFrame(results)
+                
+                # Normalize columns
+                if "total_amount" in df.columns:
+                    df["amount"] = pd.to_numeric(df["total_amount"], errors='coerce').fillna(0)
+                elif "amount" in df.columns:
+                    df["amount"] = pd.to_numeric(df["amount"], errors='coerce').fillna(0)
+                
+                chart_type = "bar" # Default
+                if "pie" in user_query.lower():
+                    chart_type = "pie"
+                
+                # Determine Grouping
+                group_by = "vendor_name" # Default
+                if "category" in user_query.lower() and "category" in df.columns:
+                    group_by = "category"
+                elif "month" in user_query.lower() or "trend" in user_query.lower():
+                    if "invoice_date" in df.columns:
+                        df["month"] = pd.to_datetime(df["invoice_date"]).dt.strftime('%b %Y')
+                        group_by = "month"
+                        chart_type = "bar" # Force bar for trends
+
+                if group_by in df.columns:
+                    # Aggregate
+                    agg = df.groupby(group_by)["amount"].sum().reset_index()
+                    agg = agg.sort_values("amount", ascending=False).head(10) # Top 10
+                    
+                    chart_data = []
+                    for _, row in agg.iterrows():
+                        chart_data.append({
+                            "name": str(row[group_by]),
+                            "value": float(row["amount"])
+                        })
+                        
+                    if chart_data:
+                        chart_config = {
+                            "type": chart_type,
+                            "title": f"Spend by {group_by.title()}",
+                            "data": chart_data
+                        }
+            except Exception as e:
+                print(f"Chart generation failed: {e}")
+
     return {
         "response": response,
         "intent": intent,
-        "query_results": query_results
+        "query_results": query_results,
+        "chart": chart_config
     }
 
 # --- Stats API (Shared) ---

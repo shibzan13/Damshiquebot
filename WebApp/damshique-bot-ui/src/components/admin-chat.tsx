@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2, Info, FileText, ExternalLink, Download, PieChart, TrendingUp, DollarSign, Zap, X, MessageSquare } from "lucide-react";
+import { Send, Bot, User, Loader2, Info, FileText, ExternalLink, Download, PieChart as IconPieChart, TrendingUp, DollarSign, Zap, X, MessageSquare } from "lucide-react";
 import { getAdminToken } from "../utils/auth";
+import { PieChart as RePieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as ReTooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface AdminChatProps {
     initialQuery?: string;
@@ -11,7 +12,7 @@ interface AdminChatProps {
 
 export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton = true }: AdminChatProps) {
     const [messages, setMessages] = useState<any[]>([
-        { role: "bot", content: "👋 Welcome back, Admin! I'm your Damshique Finance Assistant. I've indexed all your recent invoices and system logs. Ask me anything about your expenses or system activity.", timestamp: new Date() }
+        { role: "bot", content: "👋 Welcome back, Admin! I'm your Damshique Finance Assistant. I can now visualize your data—try asking 'Show me a pie chart of spend by category'.", timestamp: new Date() }
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -65,6 +66,7 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                 content: data.response || "I couldn't find any information on that.",
                 results: data.query_results?.results || [],
                 summary: data.query_results?.summary || null,
+                chart: data.chart,
                 intent: data.intent,
                 timestamp: new Date()
             }]);
@@ -155,6 +157,7 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                                     whiteSpace: "pre-wrap"
                                 }}>
                                     {msg.content}
+                                    {msg.chart && <ChatChart config={msg.chart} />}
                                 </div>
                             </div>
 
@@ -280,3 +283,44 @@ function ResultsStructured({ items, summary }: { items: any[], summary: any }) {
 
 const thStyle = { padding: "8px 4px", fontSize: 10, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" } as any;
 const tdStyle = { padding: "8px 4px", fontSize: 12, color: "#475569", fontWeight: 500 } as any;
+
+function ChatChart({ config }: { config: any }) {
+    if (!config || !config.data) return null;
+    const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#6366f1'];
+
+    return (
+        <div style={{ marginTop: 16, background: "white", borderRadius: 12, padding: 16, border: "1px solid #e2e8f0" }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", marginBottom: 16, textAlign: "center", textTransform: "uppercase", letterSpacing: "0.05em" }}>{config.title}</div>
+            <div style={{ width: '100%', height: 220 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                    {config.type === 'pie' ? (
+                        <RePieChart>
+                            <Pie
+                                data={config.data}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={80}
+                                paddingAngle={5}
+                                dataKey="value"
+                            >
+                                {config.data.map((entry: any, index: number) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <ReTooltip contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} />
+                            <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                        </RePieChart>
+                    ) : (
+                        <BarChart data={config.data}>
+                            <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} interval={0} tick={{ fill: '#64748b' }} />
+                            <YAxis fontSize={11} tickLine={false} axisLine={false} tick={{ fill: '#64748b' }} width={35} />
+                            <ReTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} />
+                            <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={32} />
+                        </BarChart>
+                    )}
+                </ResponsiveContainer>
+            </div>
+        </div>
+    )
+}
