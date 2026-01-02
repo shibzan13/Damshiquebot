@@ -402,3 +402,31 @@ def validate_expense(
         "reason": "" if status == "PASS" else "low_confidence",
         "details": "Expense validated successfully" if status == "PASS" else "Expense needs review"
     }
+
+async def generate_embedding(text: str) -> List[float]:
+    """
+    Generate embedding for semantic search using Gemini.
+    """
+    client = get_gemini_client()
+    if not client or not text:
+        return []
+    
+    try:
+        # Truncate text if too long (approx char limit for embedding models is often ~10k-30k chars, but let's be safe)
+        safe_text = text[:8000] 
+        
+        response = await client.aio.models.embed_content(
+            model="models/text-embedding-004",
+            contents=safe_text
+        )
+        # Verify dimension
+        embedding = response.embeddings[0].values
+        if len(embedding) == 768:
+            return embedding
+        else:
+            logger.warning(f"Unexpected embedding dimension: {len(embedding)}")
+            return []
+            
+    except Exception as e:
+        logger.error(f"Embedding generation failed: {e}")
+        return []

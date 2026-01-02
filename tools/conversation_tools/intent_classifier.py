@@ -22,6 +22,7 @@ async def classify_bot_intent(user_query: str, context: Optional[Dict[str, Any]]
     Allowed Intents:
     - expense_summary: Querying total spend or spend breakdown (e.g., "How much did I spend this month?")
     - invoice_search: Searching for specific invoices (e.g., "Show my Amazon invoices", "Invoices above 500 AED")
+    - semantic_search: Natural language search through invoice content (e.g., "Find that receipt with a blue logo around 500 AED", "Show me the invoice from last summer at that Italian restaurant")
     - invoice_detail: Asking for details about a specific invoice (e.g., "Break down the last invoice")
     - invoice_status: Checking the status of an invoice (e.g., "Why is my invoice pending?")
     - finance_report: Requesting periodic/compliance reports (e.g., "Quarterly spend report", "Show me anomalous vendors")
@@ -41,6 +42,7 @@ async def classify_bot_intent(user_query: str, context: Optional[Dict[str, Any]]
     - amount_filter: Comparison like ">500", "<100", "500".
     - status: "pending", "approved", "rejected".
     - reference: "last", "this", "that" (for context resolution).
+    - search_query: Full natural language search query for semantic_search intent.
 
     Rules:
     1. Output ONLY strict JSON.

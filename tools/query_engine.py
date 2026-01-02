@@ -51,6 +51,8 @@ class QueryEngine:
             elif intent == "chat":
                  # Pass through to response generator for pure conversation
                  return {"results": [], "query_meta": {"intent": "chat"}}
+            elif intent == "semantic_search":
+                return await QueryEngine._handle_semantic_search(conn, user_id, role, entities)
             else:
                 return {
                     "error": "Unknown intent or insufficient permissions",
@@ -164,3 +166,69 @@ class QueryEngine:
         # Similar to search but focused on status fields
         # Not implemented in detail here for brevity, but follows same pattern
         return await QueryEngine._handle_invoice_search(conn, user_id, role, entities)
+
+    @staticmethod
+    async def _handle_semantic_search(conn, user_id, role, entities):
+        """
+        Semantic search using vector embeddings.
+        Finds invoices by natural language description.
+        """
+        search_query = entities.get("search_query", "")
+        if not search_query:
+            return {"error": "No search query provided", "query_meta": {"intent": "semantic_search"}}
+        
+        # Generate embedding for the search query
+        from tools.document_tools.extraction_tools import generate_embedding
+        query_embedding = await generate_embedding(search_query)
+        
+        if not query_embedding:
+            # Fallback to regular text search
+            logger.warning("Embedding generation failed, falling back to text search")
+            entities["vendor"] = search_query
+            return await QueryEngine._handle_invoice_search(conn, user_id, role, entities)
+        
+        # Vector similarity search using cosine distance
+        # Lower distance = more similar
+        query = """
+            SELECT i.invoice_id, i.vendor_name, i.total_amount, i.currency, 
+                   i.invoice_date, i.status, i.file_url, u.name as user_name,
+                   (i.embedding <=> $1::vector) as distance
+            FROM invoices i
+            LEFT JOIN system_users u ON i.user_id = u.phone
+            WHERE i.embedding IS NOT NULL
+        """
+        params = [query_embedding]
+        param_idx = 2
+        
+        # Apply permissions
+        if role != "admin":
+            query += f" AND i.user_id = ${param_idx}"
+            params.append(user_id)
+            param_idx += 1
+        
+        # Order by similarity and limit results
+        query += " ORDER BY distance ASC LIMIT 10"
+        
+        try:
+            rows = await conn.fetch(query, *params)
+            results = []
+            for r in rows:
+                d = dict(r)
+                d["file_url"] = sanitize_file_url(d.get("file_url"))
+                # Include similarity score (convert distance to similarity percentage)
+                d["similarity"] = max(0, min(100, (1 - d["distance"]) * 100))
+                results.append(d)
+            
+            return {
+                "results": results,
+                "query_meta": {
+                    "intent": "semantic_search",
+                    "search_query": search_query,
+                    "method": "vector_similarity"
+                }
+            }
+        except Exception as e:
+            logger.error(f"Vector search failed: {e}")
+            # Fallback to text search
+            entities["vendor"] = search_query
+            return await QueryEngine._handle_invoice_search(conn, user_id, role, entities)

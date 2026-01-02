@@ -74,7 +74,8 @@ async def persist_invoice_intelligence(
     invoice_data: Dict[str, Any], 
     file_url: Optional[str] = None,
     whatsapp_media_id: Optional[str] = None,
-    compliance_results: Optional[Dict[str, Any]] = None
+    compliance_results: Optional[Dict[str, Any]] = None,
+    embedding: Optional[List[float]] = None
 ) -> Optional[str]:
     """
     Step 4: Persist Summary & Line Items with Transactional Integrity.
@@ -104,8 +105,8 @@ async def persist_invoice_intelligence(
                     user_id, vendor_name, invoice_date, currency, subtotal, 
                     tax_amount, total_amount, confidence_score, line_items_status, 
                     file_url, file_hash, whatsapp_media_id, status, version, is_latest,
-                    compliance_flags, cost_center, updated_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 1, TRUE, $14, $15, CURRENT_TIMESTAMP)
+                    compliance_flags, cost_center, embedding, updated_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 1, TRUE, $14, $15, $16, CURRENT_TIMESTAMP)
                 RETURNING invoice_id
             """, 
             user_id, 
@@ -122,7 +123,8 @@ async def persist_invoice_intelligence(
             whatsapp_media_id,
             'pending',
             json.dumps(compliance_results.get("compliance_flags", [])) if compliance_results else None,
-            invoice_data.get("cost_center")
+            invoice_data.get("cost_center"),
+            embedding
             )
 
             # 3. Log Activity

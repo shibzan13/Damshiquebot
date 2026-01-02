@@ -161,17 +161,23 @@ async def handle_media_extraction(user_phone, user_name, file_path, mime_type, d
     invoice_intelligence = normalize_extraction(extraction_res)
     compliance_results = ValidationEngine.validate_invoice(invoice_intelligence)
 
+    # 4.5. Generate Embedding for Semantic Search
+    from tools.document_tools.extraction_tools import generate_embedding
+    embedding_text = f"{invoice_intelligence.get('vendor_name', '')} {full_text[:2000]}"
+    embedding = await generate_embedding(embedding_text)
+
     # 5. Store & Reply
     if invoice_intelligence.get("total_amount"):
         file_url = await save_raw_invoice(file_path, user_phone)
         
-        # Persist to Postgres
+        # Persist to Postgres with embedding
         invoice_uuid = await persist_invoice_intelligence(
             user_id=user_phone,
             invoice_data=invoice_intelligence,
             file_url=file_url,
             whatsapp_media_id=document_id,
-            compliance_results=compliance_results
+            compliance_results=compliance_results,
+            embedding=embedding if embedding else None
         )
 
         if invoice_uuid:
