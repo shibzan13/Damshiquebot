@@ -460,6 +460,9 @@ async def admin_chat(payload: Dict[str, Any] = Body(...), token: str = Depends(v
                             "data": chart_data
                         }
             except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Chart generation failed: {e}", exc_info=True)
                 print(f"Chart generation failed: {e}")
 
     return {

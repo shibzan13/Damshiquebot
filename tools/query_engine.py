@@ -197,7 +197,7 @@ class QueryEngine:
             LEFT JOIN system_users u ON i.user_id = u.phone
             WHERE i.embedding IS NOT NULL
         """
-        params = [query_embedding]
+        params = [str(query_embedding)]
         param_idx = 2
         
         # Apply permissions
