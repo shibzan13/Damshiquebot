@@ -211,6 +211,25 @@ async def export_advanced_report(token: str = Depends(verify_admin)):
 async def list_requests(token: str = Depends(verify_admin)):
     return await list_pending_requests()
 
+@router.post("/users/request")
+async def submit_user_request(payload: Dict[str, Any] = Body(...)):
+    """Public endpoint for new users to request system access"""
+    phone = payload.get("phone")
+    name = payload.get("name")
+    details = payload.get("details", "Web request")
+    
+    if not phone or not name:
+        raise HTTPException(status_code=400, detail="Phone and Name are required")
+        
+    success = await create_user_request(phone, name, details)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to submit request")
+        
+    # Optional: notify admin via whatsapp?
+    # await send_whatsapp(ADMIN_PHONE, f"New registration request from {name} ({phone})")
+    
+    return {"status": "success", "message": "Request submitted. Admin will review soon."}
+
 @router.post("/requests/{phone}/approve")
 async def approve_request(phone: str, role: str = "employee", token: str = Depends(verify_admin)):
     success = await approve_user_request(phone, role)
