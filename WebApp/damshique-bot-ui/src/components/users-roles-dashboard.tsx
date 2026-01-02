@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Users, Shield, Key, Lock, UserPlus, Search, Edit, Trash2, MoreVertical, CheckCircle, XCircle, Clock, UserCheck, X, Download } from "lucide-react";
 
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function UsersRolesDashboard() {
   const [selectedTab, setSelectedTab] = useState("users");
@@ -17,8 +17,8 @@ export default function UsersRolesDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const uRes = await fetch("/api/admin/users", { headers: { 'X-API-Token': ADMIN_TOKEN } });
-      const rRes = await fetch("/api/admin/requests", { headers: { 'X-API-Token': ADMIN_TOKEN } });
+      const uRes = await fetch("/api/admin/users", { headers: { 'X-API-Token': getAdminToken() } });
+      const rRes = await fetch("/api/admin/requests", { headers: { 'X-API-Token': getAdminToken() } });
       const uDataRaw = await uRes.json();
       const rDataRaw = await rRes.json();
       const uData = Array.isArray(uDataRaw) ? uDataRaw : [];
@@ -57,7 +57,7 @@ export default function UsersRolesDashboard() {
 
       const res = await fetch(url, {
         method: method,
-        headers: { 'X-API-Token': ADMIN_TOKEN }
+        headers: { 'X-API-Token': getAdminToken() }
       });
 
       if (res.ok) {
@@ -79,7 +79,7 @@ export default function UsersRolesDashboard() {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: {
-          'X-API-Token': ADMIN_TOKEN,
+          'X-API-Token': getAdminToken(),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(newUserData)
@@ -117,7 +117,7 @@ export default function UsersRolesDashboard() {
             </div>
             <div style={{ display: "flex", gap: 12 }}>
               <button
-                onClick={() => window.open(`/api/admin/export-employees?token=${ADMIN_TOKEN}`, '_blank')}
+                onClick={() => window.open(`/api/admin/export-employees?token=${getAdminToken()}`, '_blank')}
                 style={{ padding: "12px 20px", borderRadius: 12, border: "1px solid #e2e8f0", background: "#fff", color: "#0f172a", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
               >
                 <Download size={18} /> Export List

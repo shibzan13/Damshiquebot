@@ -8,8 +8,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import toast, { Toaster } from 'react-hot-toast';
-
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function InvoicesDashboard() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -27,7 +26,7 @@ export default function InvoicesDashboard() {
       // Don't set loading to true for background refreshes unless initial
       // setLoading(true); 
       const res = await fetch("/api/admin/invoices", {
-        headers: { 'X-API-Token': ADMIN_TOKEN }
+        headers: { 'X-API-Token': getAdminToken() }
       });
       const data = await res.json();
       if (Array.isArray(data)) setInvoices(data);
@@ -85,7 +84,7 @@ export default function InvoicesDashboard() {
   const handleExport = async () => {
     const startStr = dateRange.start ? dateRange.start.toISOString().split('T')[0] : "";
     const endStr = dateRange.end ? dateRange.end.toISOString().split('T')[0] : "";
-    const url = `/api/admin/export?start_date=${startStr}&end_date=${endStr}&token=${ADMIN_TOKEN}`;
+    const url = `/api/admin/export?start_date=${startStr}&end_date=${endStr}&token=${getAdminToken()}`;
     window.open(url, '_blank');
     setShowExportModal(false);
   };
@@ -100,7 +99,7 @@ export default function InvoicesDashboard() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-API-Token": ADMIN_TOKEN
+          "X-API-Token": getAdminToken()
         },
         body: JSON.stringify({
           invoice_ids: selectedInvoices,
@@ -408,7 +407,7 @@ function InvoiceDetailsModal({ invoice, onClose, onProcessed }: any) {
 
   React.useEffect(() => {
     fetch(`/api/admin/invoices/${invoice.invoice_id}`, {
-      headers: { 'X-API-Token': ADMIN_TOKEN }
+      headers: { 'X-API-Token': getAdminToken() }
     })
       .then(r => r.json())
       .then(data => {
@@ -424,7 +423,7 @@ function InvoiceDetailsModal({ invoice, onClose, onProcessed }: any) {
     try {
       const res = await fetch(`/api/admin/invoices/${invoice.invoice_id}/process`, {
         method: "POST",
-        headers: { 'X-API-Token': ADMIN_TOKEN }
+        headers: { 'X-API-Token': getAdminToken() }
       });
       if (res.ok) {
         onProcessed();

@@ -7,7 +7,7 @@ import {
 import { DateRangePicker, MultiSelect, AmountSlider } from './AdvancedFilters';
 import { useToast } from './ToastNotification';
 
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function InvoicesDashboardEnhanced() {
     const [invoices, setInvoices] = useState<any[]>([]);
@@ -28,7 +28,7 @@ export default function InvoicesDashboardEnhanced() {
     const fetchInvoices = async () => {
         try {
             const res = await fetch("/api/admin/invoices", {
-                headers: { 'X-API-Token': ADMIN_TOKEN }
+                headers: { 'X-API-Token': getAdminToken() }
             });
             const data = await res.json();
             if (Array.isArray(data)) setInvoices(data);
@@ -98,7 +98,7 @@ export default function InvoicesDashboardEnhanced() {
             await Promise.all(selectedIds.map(id =>
                 fetch(`/api/admin/invoices/${id}/process`, {
                     method: 'POST',
-                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                    headers: { 'X-API-Token': getAdminToken() }
                 })
             ));
             showToast(`${selectedIds.length} invoices approved!`, "success");
@@ -207,7 +207,7 @@ export default function InvoicesDashboardEnhanced() {
                                 )}
                             </button>
                             <button
-                                onClick={() => window.open(`/api/admin/export?token=${ADMIN_TOKEN}`, '_blank')}
+                                onClick={() => window.open(`/api/admin/export?token=${getAdminToken()}`, '_blank')}
                                 style={{ padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #0f172a, #334155)", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}
                             >
                                 <Download size={18} /> Export All
@@ -427,7 +427,7 @@ function InvoiceDetailsModal({ invoice, onClose, onProcessed }: any) {
 
     React.useEffect(() => {
         fetch(`/api/admin/invoices/${invoice.invoice_id}`, {
-            headers: { 'X-API-Token': ADMIN_TOKEN }
+            headers: { 'X-API-Token': getAdminToken() }
         })
             .then(r => r.json())
             .then(data => {
@@ -441,7 +441,7 @@ function InvoiceDetailsModal({ invoice, onClose, onProcessed }: any) {
         try {
             const res = await fetch(`/api/admin/invoices/${invoice.invoice_id}/process`, {
                 method: "POST",
-                headers: { 'X-API-Token': ADMIN_TOKEN }
+                headers: { 'X-API-Token': getAdminToken() }
             });
             if (res.ok) {
                 onProcessed();

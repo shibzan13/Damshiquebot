@@ -12,6 +12,7 @@ import AdminChat from "./components/admin-chat";
 import SettingsDashboard from "./components/settings-dashboard";
 import NotificationsDashboard from "./components/notifications-dashboard";
 import AnalyticsDashboard from "./components/analytics-dashboard";
+import { getAdminToken, clearAuth } from "./utils/auth";
 
 export default function DamshiqueHome() {
   const [ready, setReady] = useState(false);
@@ -30,7 +31,7 @@ export default function DamshiqueHome() {
     try {
       const response = await fetch("/api/admin/stats", {
         headers: {
-          'X-API-Token': '00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7'
+          'X-API-Token': getAdminToken()
         }
       });
 
@@ -72,9 +73,21 @@ export default function DamshiqueHome() {
     showToast(`Navigated to ${label}`, "success");
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_token");
-    window.location.href = "/login";
+  const handleLogout = async () => {
+    try {
+      // Call logout API to invalidate session token
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: getAdminToken() })
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    } finally {
+      // Clear local storage and redirect
+      clearAuth();
+      window.location.href = "/login";
+    }
   };
 
   const handleSearchSubmit = (e?: React.FormEvent) => {

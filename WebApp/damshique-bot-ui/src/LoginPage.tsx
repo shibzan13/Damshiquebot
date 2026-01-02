@@ -16,20 +16,34 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     const [phone, setPhone] = useState('');
     const [regSuccess, setRegSuccess] = useState(false);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        setTimeout(() => {
-            if (username === 'admin' && password === 'Michu') {
-                localStorage.setItem("admin_token", "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7");
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Store the session token securely
+                localStorage.setItem("admin_token", data.token);
+                localStorage.setItem("admin_user", JSON.stringify(data.user));
                 onLogin();
             } else {
-                setError('Invalid credentials');
+                const errorData = await response.json();
+                setError(errorData.detail || 'Invalid credentials');
                 setLoading(false);
             }
-        }, 800);
+        } catch (err) {
+            console.error("Login error:", err);
+            setError('Connection error. Please try again.');
+            setLoading(false);
+        }
     };
 
     const handleRequestAccess = async (e: React.FormEvent) => {

@@ -4,7 +4,7 @@ import { SpendTrendChart, CategoryPieChart, MerchantBarChart, TrendStatCard, Cha
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function AnalyticsDashboard() {
     const [loading, setLoading] = useState(true);
@@ -31,19 +31,19 @@ export default function AnalyticsDashboard() {
             // Fetch all analytics in parallel
             const [trendsRes, categoriesRes, merchantsRes, anomaliesRes, predictiveRes] = await Promise.all([
                 fetch(`/api/analytics/spend-trends?period=${period}`, {
-                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                    headers: { 'X-API-Token': getAdminToken() }
                 }),
                 fetch(`/api/analytics/category-breakdown?start_date=${dateRange.start.toISOString().split('T')[0]}&end_date=${dateRange.end.toISOString().split('T')[0]}`, {
-                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                    headers: { 'X-API-Token': getAdminToken() }
                 }),
                 fetch(`/api/analytics/merchant-comparison?limit=10&start_date=${dateRange.start.toISOString().split('T')[0]}&end_date=${dateRange.end.toISOString().split('T')[0]}`, {
-                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                    headers: { 'X-API-Token': getAdminToken() }
                 }),
                 fetch('/api/analytics/anomalies', {
-                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                    headers: { 'X-API-Token': getAdminToken() }
                 }),
                 fetch('/api/analytics/predictive-spend', {
-                    headers: { 'X-API-Token': ADMIN_TOKEN }
+                    headers: { 'X-API-Token': getAdminToken() }
                 })
             ]);
 

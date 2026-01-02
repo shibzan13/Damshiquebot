@@ -35,10 +35,6 @@ import os
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
 ADMIN_TOKEN_ENV = os.getenv("ADMIN_TOKEN") or os.getenv("ADMIN_API_TOKEN") or "default_secret_token"
-# Frontend hardcoded token fallback
-FRONTEND_LEGACY_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7"
-
-VALID_TOKENS = {ADMIN_TOKEN_ENV, FRONTEND_LEGACY_TOKEN, "default_secret_token"}
 
 async def verify_admin(
     request: Request,
@@ -46,9 +42,10 @@ async def verify_admin(
     authorization: Optional[str] = Header(None),
     token: Optional[str] = None
 ):
-    # Log incoming headers for deep debugging if needed
-    # print(f"DEBUG: Headers: {dict(request.headers)}")
-    
+    """
+    Verify admin access by validating session token against database.
+    Falls back to environment tokens for backward compatibility.
+    """
     # 1. Try X-API-Token (case-insensitive)
     incoming = x_api_token
     
@@ -58,23 +55,43 @@ async def verify_admin(
     # 3. Try Bearer token
     if not incoming and authorization and "Bearer " in authorization:
         incoming = authorization.split("Bearer ")[-1].strip()
-        
-    # Standardize on the legacy token if nothing else matches but we want to allow it
-    # We'll be very explicit here
+    
+    if not incoming or incoming == "None" or incoming == "":
+        raise HTTPException(status_code=403, detail="No authentication token provided")
+    
+    # First, check if it's a valid session token from database
+    conn = await get_db_connection()
+    if conn:
+        try:
+            user = await conn.fetchrow("""
+                SELECT phone, name, role, is_approved 
+                FROM system_users 
+                WHERE session_token = $1 AND role = 'admin' AND is_approved = TRUE
+            """, incoming)
+            
+            if user:
+                await conn.close()
+                return incoming
+        except Exception as e:
+            print(f"Session token validation error: {e}")
+        finally:
+            if conn:
+                await conn.close()
+    
+    # Fallback: Check environment tokens for backward compatibility
     ALLOWED = {
-        "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7",
         str(os.getenv("ADMIN_TOKEN")),
         str(os.getenv("ADMIN_API_TOKEN")),
         "default_secret_token"
     }
-
-    if incoming in ALLOWED and incoming is not None and incoming != "None" and incoming != "":
+    
+    if incoming in ALLOWED:
         return incoming
-
-    print(f"DEBUG: Auth DENIED for token: {incoming[:5] if incoming else 'NONE'}")
+    
+    print(f"DEBUG: Auth DENIED for token: {incoming[:10] if incoming else 'NONE'}...")
     raise HTTPException(
         status_code=403, 
-        detail=f"RELAY_ERROR: Access Denied. Token mismatch. System expecting one of {len(ALLOWED)} valid keys."
+        detail="Access Denied. Invalid or expired session token."
     )
 
 # --- Invoice APIs ---

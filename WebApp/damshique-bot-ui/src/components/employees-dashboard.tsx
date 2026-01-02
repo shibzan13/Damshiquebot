@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Users, Search, Filter, Download, Upload, Plus, Mail, Phone, Calendar, Award, TrendingUp, MoreVertical, Grid, List, X, ChevronDown, MapPin, Briefcase, User, Trash2, FileText, ExternalLink } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
 
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function EmployeesDashboard() {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -14,7 +14,7 @@ export default function EmployeesDashboard() {
   const fetchEmployees = () => {
     setLoading(true);
     fetch("/api/admin/users", {
-      headers: { 'X-API-Token': ADMIN_TOKEN }
+      headers: { 'X-API-Token': getAdminToken() }
     })
       .then(r => r.json())
       .then(data => {
@@ -37,7 +37,7 @@ export default function EmployeesDashboard() {
     try {
       const res = await fetch(`/api/admin/users/${phone}`, {
         method: 'DELETE',
-        headers: { 'X-API-Token': ADMIN_TOKEN }
+        headers: { 'X-API-Token': getAdminToken() }
       });
       if (res.ok) {
         toast.success("User deleted successfully");
@@ -81,7 +81,7 @@ export default function EmployeesDashboard() {
                 <Plus size={18} /> Add User
               </button>
               <button
-                onClick={() => window.open(`/api/admin/export-employees?token=${ADMIN_TOKEN}`, '_blank')}
+                onClick={() => window.open(`/api/admin/export-employees?token=${getAdminToken()}`, '_blank')}
                 style={{ padding: "12px 24px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "#ffffff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}
               >
                 <Download size={18} /> Export Employees
@@ -194,7 +194,7 @@ function EditUserModal({ user, onClose, onSuccess }: any) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-API-Token": ADMIN_TOKEN
+          "X-API-Token": getAdminToken()
         },
         body: JSON.stringify(formData)
       });
@@ -248,7 +248,7 @@ function EmployeeInvoicesModal({ employee, onClose }: { employee: any, onClose: 
 
   useEffect(() => {
     fetch(`/api/admin/users/${employee.phone}/invoices`, {
-      headers: { 'X-API-Token': ADMIN_TOKEN }
+      headers: { 'X-API-Token': getAdminToken() }
     })
       .then(r => r.json())
       .then(setInvoices)

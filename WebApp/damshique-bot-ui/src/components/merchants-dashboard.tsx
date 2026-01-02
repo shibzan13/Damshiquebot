@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Store, Search, Filter, Download, Plus, Mail, Phone, Calendar, ArrowUpRight, TrendingUp, MoreVertical, Grid, List, MapPin, DollarSign, Package, X, FileText, ExternalLink } from "lucide-react";
 
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function MerchantsDashboard() {
   const [merchants, setMerchants] = useState<any[]>([]);
@@ -12,7 +12,7 @@ export default function MerchantsDashboard() {
   const fetchMerchants = () => {
     setLoading(true);
     fetch("/api/admin/merchants", {
-      headers: { 'X-API-Token': ADMIN_TOKEN }
+      headers: { 'X-API-Token': getAdminToken() }
     })
       .then(r => r.json())
       .then(data => {
@@ -47,7 +47,7 @@ export default function MerchantsDashboard() {
               <p style={{ fontSize: 15, color: "#64748b" }}>Track spending and interaction history with various vendors</p>
             </div>
             <button
-              onClick={() => window.open(`/api/admin/export-merchants?token=${ADMIN_TOKEN}`, '_blank')}
+              onClick={() => window.open(`/api/admin/export-merchants?token=${getAdminToken()}`, '_blank')}
               style={{ padding: "12px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
             >
               <Download size={18} /> Export Registry
@@ -140,7 +140,7 @@ function MerchantInvoicesModal({ merchant, onClose }: { merchant: any, onClose: 
 
   useEffect(() => {
     fetch(`/api/admin/merchants/${encodeURIComponent(merchant.name)}/invoices`, {
-      headers: { 'X-API-Token': ADMIN_TOKEN }
+      headers: { 'X-API-Token': getAdminToken() }
     })
       .then(r => r.json())
       .then(setInvoices)

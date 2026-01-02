@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2, Info, FileText, ExternalLink, Download, PieChart, TrendingUp, DollarSign, Zap, X, MessageSquare } from "lucide-react";
+import { getAdminToken } from "../utils/auth";
 
 interface AdminChatProps {
     initialQuery?: string;
@@ -7,8 +8,6 @@ interface AdminChatProps {
     setIsOpen: (isOpen: boolean) => void;
     showButton?: boolean;
 }
-
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
 
 export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton = true }: AdminChatProps) {
     const [messages, setMessages] = useState<any[]>([
@@ -52,7 +51,7 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-API-Token": ADMIN_TOKEN
+                    "X-API-Token": getAdminToken()
                 },
                 body: JSON.stringify({
                     query: userMsg,

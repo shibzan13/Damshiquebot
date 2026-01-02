@@ -8,6 +8,7 @@ from typing import List
 from agent_orchestrator.orchestrator import run_agent_loop
 from api.admin_api import router as admin_router
 from api.analytics_api import router as analytics_router
+from api.auth_api import router as auth_router
 from tools.messaging_tools.whatsapp import send_whatsapp
 from tools.notification_engine import NotificationEngine
 from storage.postgres_repository import run_pg_migrations
@@ -33,6 +34,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 app = FastAPI()
+app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(analytics_router)
 

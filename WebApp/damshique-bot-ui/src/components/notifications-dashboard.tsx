@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Bell, Info, AlertTriangle, CheckCircle, Clock, ExternalLink, Download } from "lucide-react";
 
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function NotificationsDashboard() {
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -10,7 +10,7 @@ export default function NotificationsDashboard() {
     const fetchNotifications = () => {
         setLoading(true);
         fetch("/api/admin/notifications", {
-            headers: { 'X-API-Token': ADMIN_TOKEN }
+            headers: { 'X-API-Token': getAdminToken() }
         })
             .then(r => r.json())
             .then(data => {
@@ -48,7 +48,7 @@ export default function NotificationsDashboard() {
                     </div>
                     <div style={{ display: "flex", gap: 12 }}>
                         <button
-                            onClick={() => window.open(`/api/admin/export-notifications?token=${ADMIN_TOKEN}`, '_blank')}
+                            onClick={() => window.open(`/api/admin/export-notifications?token=${getAdminToken()}`, '_blank')}
                             style={{ padding: "12px 24px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white", color: "#64748b", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
                         >
                             <Download size={18} /> Export Logs

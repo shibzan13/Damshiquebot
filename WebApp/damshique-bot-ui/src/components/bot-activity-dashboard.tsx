@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Bot, Activity, CheckCircle, XCircle, Clock, TrendingUp, MessageSquare, Zap, Users, Target, Download } from "lucide-react";
 
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function BotActivityDashboard() {
   const [activities, setActivities] = useState<any[]>([]);
@@ -9,7 +9,7 @@ export default function BotActivityDashboard() {
 
   useEffect(() => {
     fetch("/api/admin/bot-activity", {
-      headers: { 'X-API-Token': ADMIN_TOKEN }
+      headers: { 'X-API-Token': getAdminToken() }
     })
       .then(r => r.json())
       .then(data => {
@@ -51,7 +51,7 @@ export default function BotActivityDashboard() {
               <p style={{ fontSize: 15, color: "#64748b" }}>Monitor AI assistant performance and live interactions</p>
             </div>
             <button
-              onClick={() => window.open(`/api/admin/export-bot-activity?token=${ADMIN_TOKEN}`, '_blank')}
+              onClick={() => window.open(`/api/admin/export-bot-activity?token=${getAdminToken()}`, '_blank')}
               style={{ padding: "12px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
             >
               <Download size={18} /> Export Activity

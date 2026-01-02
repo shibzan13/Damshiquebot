@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BarChart3, TrendingUp, DollarSign, Users, Package, Download, Calendar, Filter, FileText, PieChart, Activity, ArrowUpRight, ArrowDownRight, User } from "lucide-react";
 
-const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7";
+import { getAdminToken } from "../utils/auth";
 
 export default function ReportsDashboard() {
   const [data, setData] = useState<any>(null);
@@ -12,7 +12,7 @@ export default function ReportsDashboard() {
 
   useEffect(() => {
     fetch("/api/admin/reports", {
-      headers: { 'X-API-Token': ADMIN_TOKEN }
+      headers: { 'X-API-Token': getAdminToken() }
     })
       .then(r => r.json())
       .then(d => {
@@ -53,7 +53,7 @@ export default function ReportsDashboard() {
                 {periods.map(p => <option key={p}>{p}</option>)}
               </select>
               <button
-                onClick={() => window.open(`/api/admin/export-advanced-report?token=${ADMIN_TOKEN}`, '_blank')}
+                onClick={() => window.open(`/api/admin/export-advanced-report?token=${getAdminToken()}`, '_blank')}
                 style={{ padding: "12px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
               >
                 <Download size={18} /> Export Full Report
