@@ -42,21 +42,13 @@ export default function InvoicesDashboard() {
     fetchInvoices();
 
     // Connect to WebSocket
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // If running dev server on 5173 but backend on 3000, we might need hardcoded logic or proxy
-    // Assuming proxy is set up in vite.config.ts or they run on same port (unlikely for dev)
-    // For now, let's try to connect to the backend port if we are on localhost
-    // Actually, in `main.py` we saw server is on port 3000. 
-    // Vite likely proxies /api to 3000. Does it proxy /ws? 
-    // If not, we should probably hardcode localhost:3000 for dev environments or check proxy config.
-    // However, usually vite proxy handles upgrades.
-
-    const wsUrl = `ws://localhost:3000/ws`; // Hardcoded for local dev robustness
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.host; // This includes the port (e.g., localhost:5173 or yourdomain.com)
+    const wsUrl = `${wsProtocol}//${wsHost}/ws`;
     let ws: WebSocket;
 
     try {
       ws = new WebSocket(wsUrl);
-
       ws.onopen = () => console.log("WS Connected");
 
       ws.onmessage = (event) => {

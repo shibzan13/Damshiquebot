@@ -12,7 +12,7 @@ const ADMIN_TOKEN = "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e411
 
 export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton = true }: AdminChatProps) {
     const [messages, setMessages] = useState<any[]>([
-        { role: "bot", content: "Hello Admin! I'm your Finance Intelligence Assistant. I have access to all system invoices and audit logs. How can I help you today?", timestamp: new Date() }
+        { role: "bot", content: "👋 Welcome back, Admin! I'm your Damshique Finance Assistant. I've indexed all your recent invoices and system logs. Ask me anything about your expenses or system activity.", timestamp: new Date() }
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);

@@ -204,14 +204,13 @@ export default function DamshiqueHome() {
           </button>
           <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{activeSection}</div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 16px", background: "#f0f9ff", borderRadius: 12, border: "1px solid #e0f2fe" }}>
             <Bot size={18} color="#0369a1" />
             <span style={{ fontSize: 13, fontWeight: 700, color: "#0369a1" }}>AI System Online</span>
           </div>
           <Bell size={22} color="#64748b" style={{ cursor: "pointer" }} onClick={() => setActiveSection("Notifications")} />
           <Settings size={22} color="#64748b" style={{ cursor: "pointer" }} onClick={() => setActiveSection("Settings")} />
-          <div style={{ width: 1, height: 24, background: "#e2e8f0", margin: "0 4px" }} />
           <LogOut size={22} color="#f43f5e" style={{ cursor: "pointer" }} onClick={handleLogout} />
         </div>
       </div>
