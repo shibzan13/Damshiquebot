@@ -122,6 +122,28 @@ async def webhook_handler(request: Request, background_tasks: BackgroundTasks):
                         text_body = msg.get("text", {}).get("body", "") if "text" in msg else None
                         print(f"📩 Processing message [{msg_id}] from {user_phone}: '{text_body}'")
                         
+                        # Deduplication check
+                        from storage.postgres_repository import get_db_connection
+                        conn = await get_db_connection()
+                        if conn:
+                            try:
+                                existing = await conn.fetchval(
+                                    "SELECT message_id FROM processed_messages WHERE message_id = $1",
+                                    msg_id
+                                )
+                                if existing:
+                                    print(f"⏭️ Skipping duplicate message {msg_id}")
+                                    await conn.close()
+                                    continue
+                                
+                                # Mark as processed immediately
+                                await conn.execute(
+                                    "INSERT INTO processed_messages (message_id, user_phone, message_type) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+                                    msg_id, user_phone, msg.get("type", "unknown")
+                                )
+                            finally:
+                                await conn.close()
+                        
                         # Handle Media
                         media_path = None
                         mime_type = None

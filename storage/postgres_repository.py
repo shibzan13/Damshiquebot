@@ -124,7 +124,7 @@ async def persist_invoice_intelligence(
             'pending',
             json.dumps(compliance_results.get("compliance_flags", [])) if compliance_results else None,
             invoice_data.get("cost_center"),
-            embedding
+            str(embedding) if embedding else None
             )
 
             # 3. Log Activity
