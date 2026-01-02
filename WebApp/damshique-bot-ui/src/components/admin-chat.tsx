@@ -50,7 +50,10 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                     "Content-Type": "application/json",
                     "X-API-Token": ADMIN_TOKEN
                 },
-                body: JSON.stringify({ query: userMsg })
+                body: JSON.stringify({
+                    query: userMsg,
+                    history: messages.slice(-6).map(m => ({ role: m.role, content: m.content }))
+                })
             });
 
             const data = await response.json();

@@ -318,26 +318,40 @@ async def admin_chat(payload: Dict[str, Any] = Body(...), token: str = Depends(v
     Executes a fact-based AI chat for the admin dashboard.
     """
     user_query = payload.get("query")
+    history = payload.get("history", [])
     if not user_query:
         raise HTTPException(status_code=400, detail="Query is required")
 
-    # Admins see EVERYTHING, so we use a dummy ID or a master toggle in QueryEngine
-    # For now, we'll pass 'admin' as the user_id to QueryEngine which triggers global access
+    from tools.conversation_tools.context_manager import get_conversation_context, update_conversation_context
     
-    # 1. Classify Intent
-    classification = await classify_bot_intent(user_query, {})
+    # 1. Get existing context for this admin session
+    context = await get_conversation_context("admin_webapp")
+    context["history"] = history # Use fresh history from frontend
+    
+    # 2. Classify Intent
+    classification = await classify_bot_intent(user_query, context)
     intent = classification.get("intent", "unknown")
     entities = classification.get("entities", {})
 
-    # 2. Query Database (Deterministic)
-    query_results = await QueryEngine.execute_query("ADMIN_MASTER", "admin", intent, entities)
+    # 3. Query Database
+    query_results = await QueryEngine.execute_query("WEBAPP_ADMIN", "admin", intent, entities)
 
-    # 3. Generate Fact-based Response
+    # 4. Generate Fact-based Response
     from tools.conversation_tools.response_generator import generate_bot_response
-    response = await generate_bot_response(user_query, query_results, {})
+    response = await generate_bot_response(user_query, query_results, context)
 
-    # 4. Log Interaction
-    await log_bot_interaction("admin", user_query, response, intent, 1.0, "webapp")
+    # 5. Update Context (Save last invoice ID if found)
+    results = query_results.get("results", [])
+    last_id = None
+    if results and isinstance(results, list) and len(results) > 0:
+        last_id = results[0].get("invoice_id")
+    elif query_results.get("summary"):
+        last_id = query_results.get("summary", {}).get("invoice_id")
+        
+    await update_conversation_context("admin_webapp", last_invoice_id=last_id, last_query_type=intent)
+
+    # 6. Log Interaction
+    await log_bot_interaction("admin-webapp", user_query, response, intent, 1.0, "webapp")
 
     return {
         "response": response,
