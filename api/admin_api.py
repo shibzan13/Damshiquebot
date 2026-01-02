@@ -6,6 +6,7 @@ from storage.postgres_repository import (
     get_db_connection,
     get_all_users,
     list_pending_requests,
+    create_user_request,
     approve_user_request,
     reject_user_request,
     delete_system_user,
@@ -213,20 +214,24 @@ async def list_requests(token: str = Depends(verify_admin)):
 
 @router.post("/users/request")
 async def submit_user_request(payload: Dict[str, Any] = Body(...)):
-    """Public endpoint for new users to request system access"""
+    """Secure endpoint for new users to request access via a shared invitation code"""
+    invite_code = payload.get("invite_code")
     phone = payload.get("phone")
     name = payload.get("name")
     details = payload.get("details", "Web request")
+
+    # Hardcoded fallback or env-based secret for security
+    REQUIRED_CODE = os.getenv("REGISTRATION_INVITE_CODE", "DAMSHIQUE_ACCESS_2024")
     
+    if not invite_code or invite_code != REQUIRED_CODE:
+        raise HTTPException(status_code=403, detail="Invalid Invitation Code. Registration request denied.")
+
     if not phone or not name:
         raise HTTPException(status_code=400, detail="Phone and Name are required")
         
     success = await create_user_request(phone, name, details)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to submit request")
-        
-    # Optional: notify admin via whatsapp?
-    # await send_whatsapp(ADMIN_PHONE, f"New registration request from {name} ({phone})")
     
     return {"status": "success", "message": "Request submitted. Admin will review soon."}
 

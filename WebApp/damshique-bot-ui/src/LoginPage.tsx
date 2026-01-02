@@ -14,6 +14,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     const [isRegister, setIsRegister] = useState(false);
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
+    const [inviteCode, setInviteCode] = useState('');
     const [regSuccess, setRegSuccess] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -55,7 +56,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             const response = await fetch("/api/admin/users/request", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone, name, details: "Web dashboard request" })
+                body: JSON.stringify({ phone, name, invite_code: inviteCode, details: "Web dashboard request" })
             });
 
             if (response.ok) {
@@ -178,11 +179,18 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                                             <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith" style={inputStyle} />
                                         </div>
                                     </div>
-                                    <div style={{ marginBottom: 32 }}>
+                                    <div style={{ marginBottom: 20 }}>
                                         <label style={labelStyle}>PHONE NUMBER (WITH COUNTRY CODE)</label>
                                         <div style={{ position: 'relative' }}>
                                             <Zap size={18} color="#94a3b8" style={iconStyle} />
                                             <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+447..." style={inputStyle} />
+                                        </div>
+                                    </div>
+                                    <div style={{ marginBottom: 32 }}>
+                                        <label style={labelStyle}>INVITATION CODE</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <Lock size={18} color="#94a3b8" style={iconStyle} />
+                                            <input type="password" value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} placeholder="Enter secret code" style={inputStyle} />
                                         </div>
                                     </div>
                                 </>
