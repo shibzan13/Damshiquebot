@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL Database
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: damshique_db
     restart: always
     environment:
