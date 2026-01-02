@@ -51,13 +51,20 @@ PASSWORD_SALT=damshique_default_salt_2024
 
 ## How It Works
 
+### Registration Flow
+1. **User Sign Up**: New user clicks "Request Access" on the login page.
+2. **Details Provided**: User enters their Full Name, Phone, Desired Username, and Password.
+3. **Secure Submission**: The password is hashed on the server and the request is stored in the `user_registration_requests` table with a `pending` status.
+4. **Admin Approval**: The Administrator reviews the request in the "Users & Roles" or specialized "Requests" dashboard.
+5. **Activation**: Upon approval, the user's data (including the hashed password) is moved to the `system_users` table and `is_approved` is set to TRUE.
+6. **Notification**: The user receives a WhatsApp notification that their account is active.
+
 ### Login Flow
-1. User enters username and password in the frontend
-2. Frontend sends credentials to `/api/auth/login`
-3. Backend hashes the password and validates against database
-4. If valid, backend generates/retrieves a session token
-5. Session token is returned to frontend and stored in localStorage
-6. All subsequent API calls include this session token
+1. User enters username and password in the frontend.
+2. Frontend sends credentials to `/api/auth/login`.
+3. Backend hashes the password and validates it against the approved `system_users` table.
+4. If valid, backend generates a session token.
+5. Session token is returned to frontend and stored in `localStorage`.
 
 ### API Request Flow
 1. Frontend retrieves session token from localStorage using `getAdminToken()`

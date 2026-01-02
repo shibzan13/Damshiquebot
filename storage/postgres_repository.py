@@ -247,15 +247,20 @@ async def get_system_user(phone: str) -> Optional[Dict[str, Any]]:
     await conn.close()
     return dict(row) if row else None
 
-async def create_user_request(phone: str, name: str, details: Optional[str] = None):
+async def create_user_request(phone: str, name: str, username: Optional[str] = None, password_hash: Optional[str] = None, details: Optional[str] = None):
     conn = await get_db_connection()
     if not conn: return False
     try:
         await conn.execute("""
-            INSERT INTO user_registration_requests (phone, name, details)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (phone) DO UPDATE SET name = EXCLUDED.name, details = EXCLUDED.details, status = 'pending'
-        """, phone, name, details)
+            INSERT INTO user_registration_requests (phone, name, username, password_hash, details)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (phone) DO UPDATE SET 
+                name = EXCLUDED.name, 
+                username = EXCLUDED.username,
+                password_hash = EXCLUDED.password_hash,
+                details = EXCLUDED.details, 
+                status = 'pending'
+        """, phone, name, username, password_hash, details)
         return True
     except Exception as e:
         logger.error(f"Failed to create user request: {e}")
@@ -276,15 +281,19 @@ async def approve_user_request(phone: str, role: str = 'employee'):
     async with conn.transaction():
         try:
             # 1. Get request details
-            req = await conn.fetchrow("SELECT name FROM user_registration_requests WHERE phone = $1", phone)
+            req = await conn.fetchrow("SELECT name, username, password_hash FROM user_registration_requests WHERE phone = $1", phone)
             if not req: return False
             
             # 2. Add to system_users
             await conn.execute("""
-                INSERT INTO system_users (phone, name, role, is_approved)
-                VALUES ($1, $2, $3, TRUE)
-                ON CONFLICT (phone) DO UPDATE SET is_approved = TRUE, role = $3
-            """, phone, req['name'], role)
+                INSERT INTO system_users (phone, name, username, password_hash, role, is_approved)
+                VALUES ($1, $2, $3, $4, $5, TRUE)
+                ON CONFLICT (phone) DO UPDATE SET 
+                    is_approved = TRUE, 
+                    role = $5,
+                    username = EXCLUDED.username,
+                    password_hash = EXCLUDED.password_hash
+            """, phone, req['name'], req['username'], req['password_hash'], role)
             
             # 4. Update request status
             await conn.execute("UPDATE user_registration_requests SET status = 'approved' WHERE phone = $1", phone)

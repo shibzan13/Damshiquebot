@@ -214,26 +214,26 @@ async def list_requests(token: str = Depends(verify_admin)):
 
 @router.post("/users/request")
 async def submit_user_request(payload: Dict[str, Any] = Body(...)):
-    """Secure endpoint for new users to request access via a shared invitation code"""
-    invite_code = payload.get("invite_code")
+    """Registration endpoint for new users to submit their profile for approval"""
+    from api.auth_api import hash_password
+    
     phone = payload.get("phone")
     name = payload.get("name")
-    details = payload.get("details", "Web request")
-
-    # Hardcoded fallback or env-based secret for security
-    REQUIRED_CODE = os.getenv("REGISTRATION_INVITE_CODE", "DAMSHIQUE_ACCESS_2024")
+    username = payload.get("username")
+    password = payload.get("password")
+    details = payload.get("details", "Web registration")
     
-    if not invite_code or invite_code != REQUIRED_CODE:
-        raise HTTPException(status_code=403, detail="Invalid Invitation Code. Registration request denied.")
-
-    if not phone or not name:
-        raise HTTPException(status_code=400, detail="Phone and Name are required")
+    if not phone or not name or not password or not username:
+        raise HTTPException(status_code=400, detail="Name, Phone, Username and Password are required")
         
-    success = await create_user_request(phone, name, details)
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to submit request")
+    # Hash the password for secure storage during the request phase
+    pw_hash = hash_password(password)
     
-    return {"status": "success", "message": "Request submitted. Admin will review soon."}
+    success = await create_user_request(phone, name, username, pw_hash, details)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to submit registration request")
+    
+    return {"status": "success", "message": "Access request submitted. Please wait for administrator approval."}
 
 @router.post("/requests/{phone}/approve")
 async def approve_request(phone: str, role: str = "employee", token: str = Depends(verify_admin)):
