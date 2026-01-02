@@ -278,8 +278,8 @@ async def list_pending_requests():
 async def approve_user_request(phone: str, role: str = 'employee'):
     conn = await get_db_connection()
     if not conn: return False
-    async with conn.transaction():
-        try:
+    try:
+        async with conn.transaction():
             # 1. Get request details
             req = await conn.fetchrow("SELECT name, username, password_hash FROM user_registration_requests WHERE phone = $1", phone)
             if not req: return False
@@ -295,13 +295,14 @@ async def approve_user_request(phone: str, role: str = 'employee'):
                     password_hash = EXCLUDED.password_hash
             """, phone, req['name'], req['username'], req['password_hash'], role)
             
-            # 4. Update request status
+            # 3. Update request status
             await conn.execute("UPDATE user_registration_requests SET status = 'approved' WHERE phone = $1", phone)
             return True
-        except Exception as e:
-            logger.error(f"Approval failed: {e}")
-            return False
-        finally:
+    except Exception as e:
+        logger.error(f"Approval failed: {e}")
+        return False
+    finally:
+        if conn:
             await conn.close()
 
 async def get_all_users():
