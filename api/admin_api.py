@@ -404,7 +404,7 @@ async def admin_chat(payload: Dict[str, Any] = Body(...), token: str = Depends(v
     last_id = None
     if results and isinstance(results, list) and len(results) > 0:
         last_id = results[0].get("invoice_id")
-    elif query_results.get("summary"):
+    elif query_results.get("summary") and isinstance(query_results.get("summary"), dict):
         last_id = query_results.get("summary", {}).get("invoice_id")
         
     await update_conversation_context("admin_webapp", last_invoice_id=last_id, last_query_type=intent)
