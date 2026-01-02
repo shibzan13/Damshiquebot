@@ -156,7 +156,7 @@ export default function DamshiqueHome() {
           {searchFocused && !searchQuery && (
             <div style={{ position: "absolute", top: "calc(100% + 12px)", left: 0, right: 0, background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0", boxShadow: "0 20px 40px rgba(0,0,0,0.08)", padding: 20, textAlign: "left", zIndex: 10 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", marginBottom: 12, paddingLeft: 8 }}>SUGGESTIONS</div>
-              {["Show me Amazon invoices", "Total spend this month", "Any anomalous vendors?", "Who has the highest spending?"].map((s, i) => (
+              {["Show me invoices", "Total spend this month", "Any anomalous vendors?", "Who has the highest spending?"].map((s, i) => (
                 <div key={i} onClick={() => { setSearchQuery(s); }} style={{ padding: "12px 16px", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, transition: "background 0.2s" }} onMouseEnter={(e: any) => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={(e: any) => e.currentTarget.style.background = "transparent"}>
                   <Clock size={16} color="#94a3b8" />
                   <span style={{ fontSize: 14, color: "#475569", fontWeight: 500 }}>{s}</span>
