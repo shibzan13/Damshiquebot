@@ -81,7 +81,7 @@ export function CategoryPieChart({ data }: { data: any[] }) {
     );
 }
 
-// Merchant Comparison Bar Chart
+// Merchant Comparison Bar Chart (Existing)
 export function MerchantBarChart({ data }: { data: any[] }) {
     return (
         <ResponsiveContainer width="100%" height={300}>
@@ -109,6 +109,32 @@ export function MerchantBarChart({ data }: { data: any[] }) {
                     formatter={(value: any) => [`${value.toLocaleString()} AED`, 'Total Spend']}
                 />
                 <Bar dataKey="total_spend" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+            </BarChart>
+        </ResponsiveContainer>
+    );
+}
+
+// Budget vs Actual Comparison Chart
+export function BudgetBarChart({ data }: { data: any[] }) {
+    return (
+        <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={data} layout="vertical" margin={{ left: 40, right: 30 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                <XAxis type="number" hide />
+                <YAxis
+                    type="category"
+                    dataKey="name"
+                    stroke="#64748b"
+                    width={100}
+                    style={{ fontSize: 12, fontWeight: 700 }}
+                />
+                <Tooltip
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                />
+                <Legend verticalAlign="top" align="right" />
+                <Bar dataKey="budget" name="Budget" fill="#e2e8f0" radius={[0, 4, 4, 0]} barSize={20} />
+                <Bar dataKey="actual" name="Actual" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
             </BarChart>
         </ResponsiveContainer>
     );
