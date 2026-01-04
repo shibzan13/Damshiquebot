@@ -175,10 +175,16 @@ export default function WorkflowsDashboard() {
                                                 <span style={{ padding: '4px 8px', background: '#f1f5f9', color: '#475569', borderRadius: 8, fontSize: 11, fontWeight: 800 }}>PRIORITY {rule.priority}</span>
                                             </div>
                                             <div style={{ fontSize: 14, color: '#64748b', fontWeight: 500, lineHeight: 1.5 }}>
-                                                Automatic routing to <span style={{ fontWeight: 700, color: "#0f172a" }}>{rule.approver_role.toUpperCase()}</span> when
-                                                {Object.entries(rule.conditions).map(([key, val]: any, idx) => (
-                                                    <span key={key}> {idx > 0 ? " and " : ""} <span style={{ color: "#3b82f6", fontWeight: 700 }}>{key.replace('_', ' ')}</span> is <span style={{ color: "#0f172a", fontWeight: 700 }}>{val}</span></span>
-                                                ))}
+                                                Check <span style={{ fontWeight: 700, color: "#0f172a" }}>{rule.approver_role.toUpperCase()}</span> if
+                                                {(() => {
+                                                    let conds = rule.conditions;
+                                                    if (typeof conds === 'string') {
+                                                        try { conds = JSON.parse(conds); } catch (e) { conds = {}; }
+                                                    }
+                                                    return Object.entries(conds || {}).map(([key, val]: any, idx) => (
+                                                        <span key={key}>{idx > 0 ? " & " : ""} <span style={{ color: "#3b82f6", fontWeight: 700 }}>{key.replace('_', ' ')}</span> is <span style={{ color: "#0f172a", fontWeight: 700 }}>{val}</span></span>
+                                                    ));
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
@@ -218,33 +224,33 @@ export default function WorkflowsDashboard() {
                     </div>
 
                     <div>
-                        <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: 32, padding: 32, color: "#fff", marginBottom: 32 }}>
+                        <div style={{ background: 'linear-gradient(135deg, #6366f1, #4338ca)', borderRadius: 32, padding: 32, color: "#fff", marginBottom: 32, boxShadow: "0 20px 25px -5px rgba(79, 70, 229, 0.2)" }}>
                             <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <Clock size={24} color="#3b82f6" /> Pending Approvals
+                                <Clock size={24} color="#fff" /> Pending Reviews
                             </h2>
-                            <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 24 }}>Invoices awaiting your review based on active rules.</p>
+                            <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, marginBottom: 24, fontWeight: 500 }}>Invoices awaiting your confirmation.</p>
                             <div style={{ display: 'grid', gap: 16 }}>
                                 {pendingApprovals.map((inv, i) => (
-                                    <div key={i} style={{ padding: 20, background: 'rgba(255,255,255,0.05)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <div key={i} style={{ padding: 20, background: 'rgba(255,255,255,0.1)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)', backdropFilter: "blur(4px)" }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                                             <div>
                                                 <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 2 }}>{inv.vendor_name || 'Vendor Extraction...'}</div>
-                                                <div style={{ fontSize: 12, color: '#94a3b8' }}>By {inv.user_name}</div>
+                                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>By {inv.user_name}</div>
                                             </div>
                                             <div style={{ textAlign: "right" }}>
-                                                <div style={{ fontWeight: 800, color: '#3b82f6' }}>{inv.total_amount} {inv.currency}</div>
-                                                <div style={{ fontSize: 10, color: '#94a3b8' }}>Rule: {JSON.parse(JSON.stringify(inv.compliance_flags)).rule_matched}</div>
+                                                <div style={{ fontWeight: 800 }}>{inv.total_amount} {inv.currency}</div>
+                                                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>Rule Hit</div>
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', gap: 10 }}>
-                                            <button style={{ flex: 1, padding: '10px', borderRadius: 12, background: '#3b82f6', color: '#fff', border: 'none', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>Approve</button>
-                                            <button style={{ padding: '10px 16px', borderRadius: 12, background: 'transparent', color: '#ff4d4d', border: '1px solid rgba(255,77,77,0.3)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Reject</button>
+                                            <button style={{ flex: 1, padding: '10px', borderRadius: 12, background: '#fff', color: '#4338ca', border: 'none', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>Approve</button>
+                                            <button style={{ padding: '10px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Reject</button>
                                         </div>
                                     </div>
                                 ))}
                                 {pendingApprovals.length === 0 && (
-                                    <div style={{ textAlign: 'center', color: '#64748b', padding: "20px 0" }}>
-                                        All clear! No pending reviews.
+                                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', padding: "20px 0", fontStyle: "italic" }}>
+                                        No pending reviews at the moment.
                                     </div>
                                 )}
                             </div>
