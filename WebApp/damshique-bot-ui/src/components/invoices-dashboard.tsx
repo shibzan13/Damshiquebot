@@ -201,30 +201,30 @@ export default function InvoicesDashboard() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="invoices-page" style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <Toaster position="top-right" />
       {/* HEADER */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "24px 32px", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="invoices-header" style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "24px 32px", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: 32, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Invoices & Expenses</h1>
-            <p style={{ fontSize: 15, color: "#64748b" }}>Track and manage all extracted expenses from WhatsApp</p>
+            <h1 style={{ fontSize: 32, fontWeight: 800, color: "#0f172a", marginBottom: 8 }} className="page-heading">Invoices & Expenses</h1>
+            <p style={{ fontSize: 15, color: "#64748b" }} className="page-subheading">Track and manage all extracted expenses</p>
           </div>
-          <button onClick={() => setShowExportModal(true)} style={{ padding: "12px 24px", borderRadius: 14, background: "linear-gradient(135deg, #0f172a, #334155)", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
-            <Download size={18} /> Export Sheet
+          <button onClick={() => setShowExportModal(true)} style={{ padding: "12px 24px", borderRadius: 14, background: "linear-gradient(135deg, #0f172a, #334155)", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, width: "100%", maxWidth: "max-content" }}>
+            <Download size={18} /> Export <span className="action-text">Sheet</span>
           </button>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px" }}>
+      <div className="invoices-content" style={{ maxWidth: 1400, margin: "0 auto", padding: "32px" }}>
         {/* FILTERS & TOOLBAR */}
-        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0", padding: 20, marginBottom: 32, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="toolbar" style={{ background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0", padding: 20, marginBottom: 32, display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
             {/* SEARCH */}
-            <div style={{ flex: 1, minWidth: 300, position: "relative" }}>
+            <div style={{ flex: "1 1 300px", position: "relative" }}>
               <Search style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} size={20} />
               <input
-                placeholder="Search by vendor, phone, or name..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ width: "100%", height: 48, padding: "0 16px 0 52px", borderRadius: 12, border: "1px solid #cbd5e1", background: "#f8fafc", fontSize: 15, outline: "none" }}
@@ -232,28 +232,28 @@ export default function InvoicesDashboard() {
             </div>
 
             {/* DATE PICKERS */}
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <div className="custom-datepicker-wrapper">
                 <DatePicker
                   selected={dateRange.start}
                   onChange={(date) => setDateRange({ ...dateRange, start: date })}
-                  placeholderText="Start Date"
+                  placeholderText="Start"
                   className="p-3 border rounded-xl bg-slate-50 border-slate-300 text-sm w-36"
                 />
               </div>
-              <span style={{ color: "#94a3b8" }}>-</span>
+              <span style={{ color: "#94a3b8" }} className="date-separator">-</span>
               <div className="custom-datepicker-wrapper">
                 <DatePicker
                   selected={dateRange.end}
                   onChange={(date) => setDateRange({ ...dateRange, end: date })}
-                  placeholderText="End Date"
+                  placeholderText="End"
                   className="p-3 border rounded-xl bg-slate-50 border-slate-300 text-sm w-36"
                 />
               </div>
             </div>
 
             {/* STATUS FILTER */}
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {['pending', 'approved', 'rejected'].map(status => (
                 <button
                   key={status}
@@ -274,19 +274,19 @@ export default function InvoicesDashboard() {
 
           {/* BULK ACTIONS BAR */}
           {selectedInvoices.length > 0 && (
-            <div style={{ padding: "12px 16px", background: "#f1f5f9", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between", animation: "fadeIn 0.2s" }}>
+            <div style={{ padding: "12px 16px", background: "#f1f5f9", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, animation: "fadeIn 0.2s" }}>
               <div style={{ fontWeight: 700, color: "#0f172a", display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ background: "#0f172a", color: "white", padding: "2px 8px", borderRadius: 6, fontSize: 12 }}>{selectedInvoices.length}</div>
                 Selected
               </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => handleBulkAction('approve')} disabled={isBulkProcessing} style={{ padding: "8px 16px", borderRadius: 8, background: "#16a34a", color: "#fff", border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button onClick={() => handleBulkAction('approve')} disabled={isBulkProcessing} style={{ padding: "8px 12px", borderRadius: 8, background: "#16a34a", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                   <CheckCircle size={14} /> Approve
                 </button>
-                <button onClick={() => handleBulkAction('reject')} disabled={isBulkProcessing} style={{ padding: "8px 16px", borderRadius: 8, background: "#dc2626", color: "#fff", border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                <button onClick={() => handleBulkAction('reject')} disabled={isBulkProcessing} style={{ padding: "8px 12px", borderRadius: 8, background: "#dc2626", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                   <X size={14} /> Reject
                 </button>
-                <button onClick={() => handleBulkAction('delete')} disabled={isBulkProcessing} style={{ padding: "8px 16px", borderRadius: 8, background: "#475569", color: "#fff", border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                <button onClick={() => handleBulkAction('delete')} disabled={isBulkProcessing} style={{ padding: "8px 12px", borderRadius: 8, background: "#475569", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                   <Trash2 size={14} /> Delete
                 </button>
               </div>
@@ -310,7 +310,7 @@ export default function InvoicesDashboard() {
         ) : filteredInvoices.length === 0 ? (
           <div style={{ textAlign: "center", padding: 60, color: "#94a3b8" }}>No invoices found matching your filters.</div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
             {filteredInvoices.map((inv) => {
               const status = getStatusStyle(inv.status);
               const isSelected = selectedInvoices.includes(inv.invoice_id);
@@ -323,63 +323,57 @@ export default function InvoicesDashboard() {
                     background: isSelected ? "#f1f5f9" : "white",
                     borderRadius: 24,
                     border: isSelected ? "2px solid #0f172a" : "1px solid #e2e8f0",
-                    padding: 24,
+                    padding: 20,
                     transition: "all 0.2s",
                     boxShadow: "0 4px 12px rgba(15,23,42,0.03)"
                   }}
                 >
                   <div
                     onClick={() => toggleInvoiceSelection(inv.invoice_id)}
-                    style={{ position: "absolute", top: 24, left: 24, cursor: "pointer", zIndex: 10 }}
+                    style={{ position: "absolute", top: 20, left: 20, cursor: "pointer", zIndex: 10 }}
                   >
-                    {isSelected ? <CheckSquare size={24} color="#0f172a" /> : <Square size={24} color="#cbd5e1" />}
+                    {isSelected ? <CheckSquare size={22} color="#0f172a" /> : <Square size={22} color="#cbd5e1" />}
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "start", marginBottom: 20, paddingLeft: 40 }}>
-                    <div style={{ padding: "6px 12px", borderRadius: 10, background: status.bg, color: status.color, fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "start", marginBottom: 16, paddingLeft: 30 }}>
+                    <div style={{ padding: "4px 10px", borderRadius: 8, background: status.bg, color: status.color, fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
                       {status.icon}
                       {inv.status}
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: 20 }}>
-                    <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 4 }}>{inv.vendor_name || "Unknown Vendor"}</h3>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#64748b", fontSize: 13, fontWeight: 500 }}>
-                      <Calendar size={14} /> {inv.invoice_date}
+                  <div style={{ marginBottom: 16 }}>
+                    <h3 style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", marginBottom: 4 }}>{inv.vendor_name || "Unknown Vendor"}</h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#64748b", fontSize: 12, fontWeight: 500 }}>
+                      <Calendar size={13} /> {inv.invoice_date}
                     </div>
                   </div>
 
-                  <div style={{ padding: "16px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, marginBottom: 24 }}>
-                    <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a" }}>
-                      {inv.total_amount} <span style={{ fontSize: 14, color: "#94a3b8" }}>{inv.currency}</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, marginTop: 4 }}>
-                      {inv.line_items_status === 'success' ? 'Items Extracted' : 'Summary Only'}
+                  <div style={{ padding: "14px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, marginBottom: 20 }}>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>
+                      {inv.total_amount} <span style={{ fontSize: 13, color: "#94a3b8" }}>{inv.currency}</span>
                     </div>
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}><User size={16} /></div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>{inv.user_name || "Employee"}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}><User size={14} /></div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>{inv.user_name || "Employee"}</div>
                     </div>
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 6 }}>
                       <button
                         onClick={(e) => handleSingleDelete(inv.invoice_id, e)}
                         style={{
-                          width: 36, height: 36,
-                          borderRadius: 12, border: "1px solid #fee2e2",
+                          width: 32, height: 32,
+                          borderRadius: 10, border: "1px solid #fee2e2",
                           background: "#fff", color: "#ef4444",
                           cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                           transition: "all 0.2s"
                         }}
-                        onMouseEnter={(e: any) => { e.currentTarget.style.background = "#fee2e2"; }}
-                        onMouseLeave={(e: any) => { e.currentTarget.style.background = "#fff"; }}
-                        title="Delete Invoice"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={14} />
                       </button>
-                      <button onClick={() => setSelectedInvoice(inv)} style={{ padding: "8px 16px", borderRadius: 12, border: "1px solid #e2e8f0", background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 700, transition: "background 0.2s" }} onMouseEnter={(e: any) => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={(e: any) => e.currentTarget.style.background = "#fff"}>Details</button>
+                      <button onClick={() => setSelectedInvoice(inv)} style={{ padding: "6px 12px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>Details</button>
                     </div>
                   </div>
                 </div>
@@ -389,66 +383,78 @@ export default function InvoicesDashboard() {
         )}
       </div>
 
-      {/* EXPORT MODAL */}
-      {showExportModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 24, width: "100%", maxWidth: 450, padding: 32, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 24, fontWeight: 800, color: "#0f172a" }}>Export Expenses</h2>
-              <button onClick={() => setShowExportModal(false)} style={{ background: "transparent", border: "none", cursor: "pointer" }}><X size={24} color="#64748b" /></button>
-            </div>
-
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#475569", marginBottom: 12 }}>Select Date Range</label>
-              <div style={{ display: "flex", gap: 12 }}>
-                <DatePicker
-                  selected={dateRange.start}
-                  onChange={(date) => setDateRange({ ...dateRange, start: date })}
-                  placeholderText="Start"
-                  className="p-3 border rounded-xl bg-slate-50 border-slate-300 w-full"
-                />
-                <DatePicker
-                  selected={dateRange.end}
-                  onChange={(date) => setDateRange({ ...dateRange, end: date })}
-                  placeholderText="End"
-                  className="p-3 border rounded-xl bg-slate-50 border-slate-300 w-full"
-                />
-              </div>
-            </div>
-
-            <button onClick={handleExport} style={{ width: "100%", padding: "16px", borderRadius: 16, background: "linear-gradient(135deg, #0f172a, #334155)", color: "#fff", border: "none", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
-              Generate Report
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* DETAILS MODAL */}
-      {selectedInvoice && (
-        <InvoiceDetailsModal
-          invoice={selectedInvoice}
-          onClose={() => setSelectedInvoice(null)}
-          onProcessed={() => { setSelectedInvoice(null); fetchInvoices(); }}
-          onDelete={() => handleSingleDelete(selectedInvoice.invoice_id)}
-        />
-      )}
-
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         .custom-datepicker-wrapper input {
-           padding: 12px;
-           border-radius: 12px;
+           padding: 10px;
+           border-radius: 10px;
            border: 1px solid #cbd5e1;
            font-family: 'Plus Jakarta Sans', sans-serif;
-           font-size: 14px;
-           width: 130px;
+           font-size: 13px;
+           width: 120px;
         }
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @media (max-width: 768px) {
+          .invoices-header, .invoices-content { padding: 20px !important; }
+          .page-heading { font-size: 24px !important; }
+          .page-subheading { font-size: 13px !important; }
+          .action-text { display: none; }
+          .date-separator { display: none; }
+          .toolbar { padding: 15px !important; }
+        }
       `}</style>
-    </div>
+
+      {/* EXPORT MODAL */}
+      {
+        showExportModal && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+            <div style={{ background: "#fff", borderRadius: 24, width: "100%", maxWidth: 450, padding: 32, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                <h2 style={{ fontSize: 24, fontWeight: 800, color: "#0f172a" }}>Export Expenses</h2>
+                <button onClick={() => setShowExportModal(false)} style={{ background: "transparent", border: "none", cursor: "pointer" }}><X size={24} color="#64748b" /></button>
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#475569", marginBottom: 12 }}>Select Date Range</label>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <DatePicker
+                    selected={dateRange.start}
+                    onChange={(date) => setDateRange({ ...dateRange, start: date })}
+                    placeholderText="Start"
+                    className="p-3 border rounded-xl bg-slate-50 border-slate-300 w-full"
+                  />
+                  <DatePicker
+                    selected={dateRange.end}
+                    onChange={(date) => setDateRange({ ...dateRange, end: date })}
+                    placeholderText="End"
+                    className="p-3 border rounded-xl bg-slate-50 border-slate-300 w-full"
+                  />
+                </div>
+              </div>
+
+              <button onClick={handleExport} style={{ width: "100%", padding: "16px", borderRadius: 16, background: "linear-gradient(135deg, #0f172a, #334155)", color: "#fff", border: "none", fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
+                Generate Report
+              </button>
+            </div>
+          </div>
+        )
+      }
+
+      {/* DETAILS MODAL */}
+      {
+        selectedInvoice && (
+          <InvoiceDetailsModal
+            invoice={selectedInvoice}
+            onClose={() => setSelectedInvoice(null)}
+            onProcessed={() => { setSelectedInvoice(null); fetchInvoices(); }}
+            onDelete={() => handleSingleDelete(selectedInvoice.invoice_id)}
+          />
+        )
+      }
+    </div >
   );
 }
 
@@ -511,9 +517,9 @@ function InvoiceDetailsModal({ invoice, onClose, onProcessed, onDelete }: any) {
           </button>
         </div>
 
-        <div style={{ padding: "40px", overflowY: "auto", flex: 1 }}>
+        <div className="modal-content" style={{ padding: "24px", overflowY: "auto", flex: 1 }}>
           {/* CONTENT */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: 40 }}>
+          <div className="info-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, marginBottom: 32 }}>
             <div style={{ background: "#f8fafc", padding: 24, borderRadius: 24, border: "1px solid #f1f5f9" }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 16 }}>General Info</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -567,9 +573,9 @@ function InvoiceDetailsModal({ invoice, onClose, onProcessed, onDelete }: any) {
             </table>
           </div>
 
-          <div style={{ display: "flex", gap: 16 }}>
+          <div className="modal-actions" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             {invoice.file_url && (
-              <a href={invoice.file_url} target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: "none", padding: "18px", borderRadius: 20, background: "#f1f5f9", color: "#0f172a", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+              <a href={invoice.file_url} target="_blank" rel="noreferrer" style={{ flex: "1 1 200px", textDecoration: "none", padding: "16px", borderRadius: 20, background: "#f1f5f9", color: "#0f172a", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
                 <ExternalLink size={18} /> View Document
               </a>
             )}
@@ -595,8 +601,8 @@ function InvoiceDetailsModal({ invoice, onClose, onProcessed, onDelete }: any) {
               onClick={handleMarkProcessed}
               disabled={isProcessing || isApproved}
               style={{
-                flex: 1,
-                padding: "18px",
+                flex: "1 1 200px",
+                padding: "16px",
                 borderRadius: 20,
                 background: isApproved ? "#f1f5f9" : "#0f172a",
                 color: isApproved ? "#94a3b8" : "#fff",

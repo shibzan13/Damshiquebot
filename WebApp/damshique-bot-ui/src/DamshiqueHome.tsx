@@ -209,27 +209,40 @@ export default function DamshiqueHome() {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "#ffffff", overflow: "hidden", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+      {/* SIDEBAR BACKDROP */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="sidebar-backdrop"
+          style={{
+            position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(4px)", zIndex: 150, transition: "opacity 0.3s"
+          }}
+        />
+      )}
+
       {/* HEADER */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 80, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", zIndex: 100 }}>
+      <div className="main-header" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 80, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <Menu size={22} color="#0f172a" />
           </button>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{activeSection}</div>
+          <div className="header-title" style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{activeSection}</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 16px", background: "#f0f9ff", borderRadius: 12, border: "1px solid #e0f2fe" }}>
+          <div className="status-badge" style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 16px", background: "#f0f9ff", borderRadius: 12, border: "1px solid #e0f2fe" }}>
             <Bot size={18} color="#0369a1" />
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#0369a1" }}>AI System Online</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#0369a1" }}>AI Online</span>
           </div>
-          <Bell size={22} color="#64748b" style={{ cursor: "pointer" }} onClick={() => setActiveSection("Notifications")} />
-          <Settings size={22} color="#64748b" style={{ cursor: "pointer" }} onClick={() => setActiveSection("Settings")} />
-          <LogOut size={22} color="#f43f5e" style={{ cursor: "pointer" }} onClick={handleLogout} />
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <Bell size={22} color="#64748b" className="header-icon" style={{ cursor: "pointer" }} onClick={() => setActiveSection("Notifications")} />
+            <Settings size={22} color="#64748b" className="header-icon" style={{ cursor: "pointer" }} onClick={() => setActiveSection("Settings")} />
+            <LogOut size={22} color="#f43f5e" style={{ cursor: "pointer" }} onClick={handleLogout} />
+          </div>
         </div>
       </div>
 
       {/* SIDEBAR */}
-      <div style={{ position: "fixed", top: 0, left: sidebarOpen ? 0 : -340, width: 320, height: "100%", background: "#ffffff", borderRight: "1px solid #e2e8f0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", zIndex: 200, padding: 32, boxShadow: sidebarOpen ? "0 0 120px rgba(0,0,0,0.12)" : "none", overflowY: "auto" }}>
+      <div className="sidebar" style={{ position: "fixed", top: 0, left: sidebarOpen ? 0 : -340, width: 320, height: "100%", background: "#ffffff", borderRight: "1px solid #e2e8f0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", zIndex: 200, padding: 32, boxShadow: sidebarOpen ? "0 0 120px rgba(0,0,0,0.12)" : "none", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <img src="/logo.png" style={{ width: 40, height: 40, borderRadius: 10 }} />
@@ -251,7 +264,7 @@ export default function DamshiqueHome() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div style={{ position: "absolute", top: 80, left: 0, right: 0, bottom: 0, overflowY: "auto", background: "#f8fafc" }}>
+      <div style={{ position: "absolute", top: 80, left: 0, right: 0, bottom: 0, overflowY: "auto", background: "#f8fafc", padding: "0" }}>
         {renderContent()}
       </div>
 
@@ -263,6 +276,24 @@ export default function DamshiqueHome() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         @keyframes toastSlide { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* Mobile & iPad Special Styles */
+        @media (max-width: 1024px) {
+          .main-header { padding: 0 20px !important; }
+          .header-title { font-size: 18px !important; }
+          .status-badge { display: none !important; }
+        }
+        
+        @media (max-width: 768px) {
+          .sidebar { width: 100% !important; max-width: 320px; }
+          .header-icon { display: none !important; }
+          h1 { font-size: 32px !important; }
+          p { font-size: 16px !important; }
+        }
+
+        @media (max-width: 480px) {
+           .header-title { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        }
       `}</style>
     </div>
   );

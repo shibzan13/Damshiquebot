@@ -104,28 +104,30 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
 
     return (
         <>
-            {/* Overlay removed to allow interaction with main content */}
-
-            <div style={{
-                position: "fixed", top: 0, right: 0,
-                width: "100%", maxWidth: 450, height: "100vh",
-                background: "#fcfdff", zIndex: 9999,
-                boxShadow: "-10px 0 40px rgba(0,0,0,0.1)",
-                display: "flex", flexDirection: "column",
-                borderLeft: "1px solid #e2e8f0",
-                animation: "slideIn 0.3s ease-out"
-            }}>
+            <div
+                className="admin-chat-container"
+                style={{
+                    position: "fixed", top: 0, right: 0,
+                    width: "100%", maxWidth: 450,
+                    height: "100vh", height: "100dvh",
+                    background: "#fcfdff", zIndex: 9999,
+                    boxShadow: "-10px 0 40px rgba(0,0,0,0.1)",
+                    display: "flex", flexDirection: "column",
+                    borderLeft: "1px solid #e2e8f0",
+                    animation: "slideIn 0.3s ease-out"
+                }}
+            >
                 {/* Chat Header */}
-                <div style={{ background: "#ffffff", padding: "20px 24px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+                <div style={{ background: "#ffffff", padding: "16px 20px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(59,130,246,0.2)" }}>
-                            <Bot size={24} />
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(59,130,246,0.2)" }}>
+                            <Bot size={20} />
                         </div>
                         <div>
-                            <h2 style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 2 }}>Finance Assistant</h2>
+                            <h2 style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginBottom: 0 }}>Finance Assistant</h2>
                             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", animation: "pulse 2s infinite" }} />
-                                <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>Online • Admin Mode</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b" }}>Admin Mode</span>
                             </div>
                         </div>
                     </div>
@@ -135,26 +137,27 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                 </div>
 
                 {/* Messages Area */}
-                <div style={{ flex: 1, padding: "24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 24, background: "#f8fafc" }}>
+                <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 20, background: "#f8fafc" }}>
                     {messages.map((msg, i) => (
                         <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start", gap: 8 }}>
-                            <div style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start", gap: 12, width: "100%" }}>
+                            <div style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start", gap: 10, width: "100%" }}>
                                 {msg.role === "bot" && (
-                                    <div style={{ width: 32, height: 32, borderRadius: 10, background: "#ffffff", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                        <Bot size={18} color="#3b82f6" />
+                                    <div style={{ width: 28, height: 28, borderRadius: 8, background: "#ffffff", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                        <Bot size={16} color="#3b82f6" />
                                     </div>
                                 )}
                                 <div style={{
-                                    maxWidth: "85%",
-                                    padding: "16px 20px",
-                                    borderRadius: msg.role === "user" ? "20px 20px 4px 20px" : "4px 20px 20px 20px",
+                                    maxWidth: "90%",
+                                    padding: "12px 16px",
+                                    borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "4px 18px 18px 18px",
                                     background: msg.role === "user" ? "#0f172a" : "#ffffff",
                                     color: msg.role === "user" ? "#ffffff" : "#0f172a",
                                     boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                                     fontSize: 14,
-                                    lineHeight: 1.6,
+                                    lineHeight: 1.5,
                                     border: msg.role === "bot" ? "1px solid #e2e8f0" : "none",
-                                    whiteSpace: "pre-wrap"
+                                    whiteSpace: "pre-wrap",
+                                    wordBreak: "break-word"
                                 }}>
                                     {msg.content}
                                     {msg.chart && <ChatChart config={msg.chart} />}
@@ -163,17 +166,17 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
 
                             {/* Structured Data View */}
                             {msg.role === "bot" && (msg.results?.length > 0 || msg.summary) && (
-                                <div style={{ marginLeft: 44, width: "calc(100% - 60px)" }}>
+                                <div style={{ marginLeft: 38, width: "calc(100% - 40px)" }}>
                                     <ResultsStructured items={msg.results} summary={msg.summary} />
                                 </div>
                             )}
                         </div>
                     ))}
                     {loading && (
-                        <div style={{ display: "flex", gap: 12, paddingLeft: 44 }}>
-                            <div style={{ padding: "12px 20px", borderRadius: "4px 20px 20px 20px", background: "#ffffff", border: "1px solid #e2e8f0", color: "#64748b", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                        <div style={{ display: "flex", gap: 10, paddingLeft: 38 }}>
+                            <div style={{ padding: "10px 16px", borderRadius: "4px 18px 18px 18px", background: "#ffffff", border: "1px solid #e2e8f0", color: "#64748b", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                                 <Loader2 size={16} className="animate-spin" color="#3b82f6" />
-                                Analyzing financial records...
+                                <span className="loading-text">Analyzing records...</span>
                             </div>
                         </div>
                     )}
@@ -181,19 +184,19 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                 </div>
 
                 {/* Input Area */}
-                <div style={{ padding: "20px 24px", background: "#ffffff", borderTop: "1px solid #e2e8f0" }}>
-                    <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ padding: "16px 20px", background: "#ffffff", borderTop: "1px solid #e2e8f0", flexShrink: 0 }}>
+                    <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{ flex: 1, position: "relative" }}>
                             <input
                                 type="text"
-                                placeholder="Query invoices, reports..."
+                                placeholder="Message assistant..."
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                                 style={{
                                     width: "100%",
-                                    padding: "14px 20px",
-                                    borderRadius: 16,
+                                    padding: "12px 16px",
+                                    borderRadius: 14,
                                     border: "1px solid #e2e8f0",
                                     fontSize: 14,
                                     outline: "none",
@@ -207,9 +210,9 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                             onClick={() => handleSend()}
                             disabled={loading || !input.trim()}
                             style={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: 16,
+                                width: 44,
+                                height: 44,
+                                borderRadius: 14,
                                 background: input.trim() ? "#0f172a" : "#cbd5e1",
                                 color: "#ffffff",
                                 border: "none",
@@ -220,7 +223,7 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                                 transition: "all 0.2s"
                             }}
                         >
-                            <Send size={20} />
+                            <Send size={18} />
                         </button>
                     </div>
                 </div>
@@ -229,6 +232,14 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                     @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
                     @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+                    
+                    @media (max-width: 600px) {
+                        .admin-chat-container {
+                            width: 100% !important;
+                            max-width: 100% !important;
+                        }
+                        .loading-text { display: none; }
+                    }
                 `}</style>
             </div>
         </>

@@ -68,57 +68,57 @@ export default function AnalyticsDashboard() {
     return (
         <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {/* Header */}
-            <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '24px 32px' }}>
+            <div className="analytics-header" style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '24px 32px' }}>
                 <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
                         <div>
-                            <h1 style={{ fontSize: 32, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>Analytics Dashboard</h1>
+                            <h1 style={{ fontSize: 32, fontWeight: 800, color: '#0f172a', marginBottom: 8 }} className="page-title">Analytics Dashboard</h1>
                             <p style={{ fontSize: 15, color: '#64748b' }}>AI-powered insights and spending intelligence</p>
                         </div>
-                        <div style={{ display: 'flex', gap: 12 }}>
+                        <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 'max-content' }} className="header-actions">
                             <select
                                 value={period}
                                 onChange={(e) => setPeriod(e.target.value)}
-                                style={{ padding: '12px 16px', borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 14, fontWeight: 600, cursor: 'pointer', background: '#fff' }}
+                                style={{ padding: '12px 16px', borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 14, fontWeight: 600, cursor: 'pointer', background: '#fff', flex: 1 }}
                             >
-                                <option value="3months">Last 3 Months</option>
-                                <option value="6months">Last 6 Months</option>
-                                <option value="1year">Last Year</option>
+                                <option value="3months">3 Months</option>
+                                <option value="6months">6 Months</option>
+                                <option value="1year">1 Year</option>
                                 <option value="all">All Time</option>
                             </select>
                             <button
                                 onClick={fetchAllAnalytics}
                                 style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
                             >
-                                <Download size={18} /> Export Report
+                                <Download size={18} /> <span className="action-text">Export</span>
                             </button>
                         </div>
                     </div>
 
                     {/* Predictive Stats */}
                     {predictive && typeof predictive === 'object' && !predictive.error && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
                             <TrendStatCard
-                                title="Current Month Spend"
-                                value={`${(predictive.current_spend || 0).toLocaleString()} AED`}
+                                title="Current Spend"
+                                value={`${(predictive.current_spend || 0).toLocaleString()}`}
                                 change={predictive.variance_percentage}
                                 icon={<DollarSign size={24} />}
                                 color="#3b82f6"
                             />
                             <TrendStatCard
-                                title="Projected Month-End"
-                                value={`${Math.round(predictive.projected_spend || 0).toLocaleString()} AED`}
+                                title="Projected End"
+                                value={`${Math.round(predictive.projected_spend || 0).toLocaleString()}`}
                                 icon={<TrendingUp size={24} />}
                                 color="#8b5cf6"
                             />
                             <TrendStatCard
-                                title="Daily Average"
-                                value={`${Math.round(predictive.daily_average || 0).toLocaleString()} AED`}
+                                title="Daily Avg"
+                                value={`${Math.round(predictive.daily_average || 0).toLocaleString()}`}
                                 icon={<ShoppingCart size={24} />}
                                 color="#10b981"
                             />
                             <TrendStatCard
-                                title="Anomalies Detected"
+                                title="Anomalies"
                                 value={Array.isArray(anomalies) ? anomalies.length : 0}
                                 icon={<AlertTriangle size={24} />}
                                 color="#ef4444"
@@ -128,29 +128,29 @@ export default function AnalyticsDashboard() {
                 </div>
             </div>
 
-            <div style={{ maxWidth: 1400, margin: '0 auto', padding: 32 }}>
+            <div className="analytics-content" style={{ maxWidth: 1400, margin: '0 auto', padding: 32 }}>
                 {/* Spend Trend Chart */}
-                <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: 32, marginBottom: 24 }}>
+                <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: "32px 24px", marginBottom: 24 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>Spending Trends</h2>
                     {loading ? <ChartSkeleton /> : <SpendTrendChart data={trendData} />}
                 </div>
 
                 {/* Category & Merchant Charts */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 24, marginBottom: 24 }}>
-                    <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: 32 }}>
+                <div className="chart-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, marginBottom: 24 }}>
+                    <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: 24 }}>
                         <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>Category Breakdown</h2>
                         {loading ? <ChartSkeleton /> : <CategoryPieChart data={categoryData} />}
                         <div style={{ marginTop: 20 }}>
                             {Array.isArray(categoryData) && categoryData.slice(0, 5).map((cat: any, i: number) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                    <span style={{ fontSize: 14, fontWeight: 600, color: '#64748b' }}>{cat.name || "Unknown"}</span>
-                                    <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{(cat.value || 0).toLocaleString()} AED ({cat.percentage || 0}%)</span>
+                                    <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>{cat.name || "Unknown"}</span>
+                                    <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>{(cat.value || 0).toLocaleString()} AED</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: 32 }}>
+                    <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0', padding: 24 }}>
                         <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>Top Merchants</h2>
                         {loading ? <ChartSkeleton /> : <MerchantBarChart data={merchantData} />}
                     </div>
@@ -158,26 +158,26 @@ export default function AnalyticsDashboard() {
 
                 {/* Anomalies Alert */}
                 {anomalies.length > 0 && (
-                    <div style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', borderRadius: 24, border: '2px solid #f59e0b', padding: 32 }}>
+                    <div style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', borderRadius: 24, border: '2px solid #f59e0b', padding: 24 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-                            <div style={{ width: 48, height: 48, borderRadius: 14, background: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <AlertTriangle size={24} />
+                            <div style={{ width: 44, height: 44, borderRadius: 14, background: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <AlertTriangle size={20} />
                             </div>
                             <div>
-                                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#92400e' }}>Unusual Spending Detected</h2>
-                                <p style={{ fontSize: 14, color: '#78350f' }}>These invoices are significantly above average</p>
+                                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#92400e' }}>Spending Anomalies</h2>
+                                <p style={{ fontSize: 13, color: '#78350f' }}>Significant deviation from patterns</p>
                             </div>
                         </div>
                         <div style={{ display: 'grid', gap: 12 }}>
                             {anomalies.slice(0, 5).map((anomaly, i) => (
-                                <div key={i} style={{ background: '#fff', borderRadius: 16, padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div>
-                                        <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{anomaly.vendor}</div>
-                                        <div style={{ fontSize: 13, color: '#64748b' }}>{anomaly.user} • {new Date(anomaly.date).toLocaleDateString()}</div>
+                                <div key={i} style={{ background: '#fff', borderRadius: 16, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                                    <div style={{ minWidth: 150 }}>
+                                        <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{anomaly.vendor}</div>
+                                        <div style={{ fontSize: 12, color: '#64748b' }}>{anomaly.user} • {new Date(anomaly.date).toLocaleDateString()}</div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: 18, fontWeight: 800, color: '#ef4444' }}>{anomaly.amount.toLocaleString()} AED</div>
-                                        <div style={{ fontSize: 12, color: '#64748b' }}>{anomaly.deviation}σ above average</div>
+                                        <div style={{ fontSize: 16, fontWeight: 800, color: '#ef4444' }}>{anomaly.amount.toLocaleString()} AED</div>
+                                        <div style={{ fontSize: 11, color: '#64748b' }}>{anomaly.deviation}σ deviation</div>
                                     </div>
                                 </div>
                             ))}
@@ -186,7 +186,15 @@ export default function AnalyticsDashboard() {
                 )}
             </div>
 
-            <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');`}</style>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+                @media (max-width: 768px) {
+                    .analytics-header, .analytics-content { padding: 20px !important; }
+                    .page-title { font-size: 24px !important; }
+                    .action-text { display: none; }
+                    .chart-grid { grid-template-columns: 1fr !important; }
+                }
+            `}</style>
         </div>
     );
 }
