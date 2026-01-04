@@ -26,8 +26,10 @@ async def generate_bot_response(user_query: str, query_results: Dict[str, Any], 
     - For general questions not related to finance, use your broad knowledge but try to steer the conversation back to helping with their business.
     - Be proactive: if data is returned, interpret it briefly (e.g., "I see a peak in spending at Amazon this week").
 
-    Data & Facts:
+    Data & Facts & RAG:
     - If 'Query Results' contains specific database data (invoices, spend, users), prioritize summarizing that data with 100% accuracy.
+    - If 'Query Results' includes 'raw_text', this is the OCR/Parsed content of a specific document. Use this text to answer granular questions (e.g., terms and conditions, specific items, notes visible on the receipt). 
+    - If answering from 'raw_text', you can say "Based on the details in the document..."
     - Use clear, elegant formatting. Bold key numbers and vendor names.
     - If a user asks a specific financial question and 'Query Results' is empty, answer gracefully: "I couldn't find a record of that specific transaction in our database, but I'm happy to help search by a different date or merchant."
     - Do NOT invent financial facts.
@@ -42,7 +44,7 @@ async def generate_bot_response(user_query: str, query_results: Dict[str, Any], 
     # we still let Gemini explain this nicely to the user.
     no_results = not query_results.get("results") and not query_results.get("summary")
     
-    data_intents = ["expense_summary", "invoice_search", "invoice_detail", "invoice_status", "finance_report", "budget_query"]
+    data_intents = ["expense_summary", "invoice_search", "invoice_detail", "invoice_status", "finance_report", "budget_query", "recurring_query", "predictive_query"]
     intent = query_results.get("query_meta", {}).get("intent")
     is_data_query = intent in data_intents
 

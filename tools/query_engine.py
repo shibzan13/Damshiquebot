@@ -36,6 +36,17 @@ class QueryEngine:
                 )
             elif intent == "budget_query":
                 return await ReportingEngine.get_budget_status(entities.get("category", "General"))
+            elif intent == "recurring_query":
+                from tools.finance_tools.recurring_detector import RecurringDetector
+                potential = await RecurringDetector.find_potential_recurring(user_id)
+                # Also get confirmed ones
+                rows = await conn.fetch("SELECT * FROM subscriptions WHERE user_id = $1", user_id)
+                return {"confirmed": [dict(r) for r in rows], "potential": potential, "query_meta": {"intent": "recurring_query"}}
+            elif intent == "predictive_query":
+                from tools.finance_tools.predictive_analytics import PredictiveAnalytics
+                forecast = await PredictiveAnalytics.get_spend_forecast(user_id)
+                next_month = await PredictiveAnalytics.get_next_month_projection(user_id)
+                return {"forecast": forecast, "next_month": next_month, "query_meta": {"intent": "predictive_query"}}
             elif intent == "finance_export":
                 from tools.export_tools import generate_custom_export
                 # Map entities to date range if possible
@@ -191,7 +202,7 @@ class QueryEngine:
         # Lower distance = more similar
         query = """
             SELECT i.invoice_id, i.vendor_name, i.total_amount, i.currency, 
-                   i.invoice_date, i.status, i.file_url, u.name as user_name,
+                   i.invoice_date, i.status, i.file_url, i.raw_text, u.name as user_name,
                    (i.embedding <=> $1::vector) as distance
             FROM invoices i
             LEFT JOIN system_users u ON i.user_id = u.phone
@@ -212,11 +223,16 @@ class QueryEngine:
         try:
             rows = await conn.fetch(query, *params)
             results = []
-            for r in rows:
+            for i, r in enumerate(rows):
                 d = dict(r)
                 d["file_url"] = sanitize_file_url(d.get("file_url"))
                 # Include similarity score (convert distance to similarity percentage)
                 d["similarity"] = max(0, min(100, (1 - d["distance"]) * 100))
+                
+                # Only include full raw_text for the top 3 results to save tokens
+                if i >= 3:
+                     d["raw_text"] = d.get("raw_text", "")[:200] + "..." if d.get("raw_text") else None
+                
                 results.append(d)
             
             return {

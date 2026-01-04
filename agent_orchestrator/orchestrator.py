@@ -170,14 +170,15 @@ async def handle_media_extraction(user_phone, user_name, file_path, mime_type, d
     if invoice_intelligence.get("total_amount"):
         file_url = await save_raw_invoice(file_path, user_phone)
         
-        # Persist to Postgres with embedding
+        # Persist to Postgres with embedding and raw text
         invoice_uuid = await persist_invoice_intelligence(
             user_id=user_phone,
             invoice_data=invoice_intelligence,
             file_url=file_url,
             whatsapp_media_id=document_id,
             compliance_results=compliance_results,
-            embedding=embedding if embedding else None
+            embedding=embedding if embedding else None,
+            raw_text=full_text
         )
 
         if invoice_uuid:
@@ -194,6 +195,29 @@ async def handle_media_extraction(user_phone, user_name, file_path, mime_type, d
                     await NotificationEngine.trigger_event(user_phone, "invoice_rejected", {"vendor_name": invoice_intelligence['vendor_name'], "reason": flag['message']})
             
             await update_conversation_context(user_phone, last_invoice_id=str(invoice_uuid), last_query_type="invoice_upload")
+
+            # 6. Smart Finance: Recurring & Predictive
+            try:
+                # 6.1 Recurring Detection
+                from tools.finance_tools.recurring_detector import RecurringDetector
+                potentials = await RecurringDetector.find_potential_recurring(user_phone)
+                just_uploaded_vendor = invoice_intelligence.get("vendor_name", "").lower()
+                
+                for pot in potentials:
+                    if pot['vendor_name'].lower() == just_uploaded_vendor:
+                        # We found a match for the just-uploaded invoice
+                        msg = f"🔄 Patterns detected: You've been charged for *{pot['vendor_name']}* regularly ({pot['frequency']}). Would you like me to track this as a subscription?"
+                        await send_whatsapp(user_phone, msg)
+                        await RecurringDetector.record_detected_subscription(user_phone, pot)
+                
+                # 6.2 Predictive Budget Alerts
+                from tools.finance_tools.predictive_analytics import PredictiveAnalytics
+                forecast = await PredictiveAnalytics.get_spend_forecast(user_phone)
+                if forecast.get("warning_needed"):
+                    warn_msg = f"⚠️ *Budget Warning*: Based on your current spending, you are on track to spend *{round(forecast['projected_spend'])} AED* this month, which exceeds your budget of {round(forecast['budget_amount'])} AED."
+                    await send_whatsapp(user_phone, warn_msg)
+            except Exception as e:
+                logger.error(f"Post-processing smart features failed: {e}")
             
         else:
              await NotificationEngine.trigger_event(user_phone, "duplicate_detected", invoice_intelligence)

@@ -20,14 +20,16 @@ async def classify_bot_intent(user_query: str, context: Optional[Dict[str, Any]]
     Your task is to analyze the user query and optional conversation context to determine the intent and extract relevant entities.
     
     Allowed Intents:
-    - expense_summary: Querying total spend or spend breakdown (e.g., "How much did I spend this month?")
+    - expense_summary: Querying total spend or spend breakdown (e.g., "How much did I spend this month?"). IMPORTANT: If the user asks for a CHART, PIE CHART, BAR CHART, or GRAPH, this is the correct intent.
     - invoice_search: Searching for specific invoices (e.g., "Show my Amazon invoices", "Invoices above 500 AED")
-    - semantic_search: Natural language search through invoice content (e.g., "Find that receipt with a blue logo around 500 AED", "Show me the invoice from last summer at that Italian restaurant")
+    - semantic_search: Natural language search through invoice content or asking specific questions about documents (e.g., "Find that receipt with a blue logo", "What is the return policy on the last Apple receipt?", "Who signed the delivery note from yesterday?")
     - invoice_detail: Asking for details about a specific invoice (e.g., "Break down the last invoice")
     - invoice_status: Checking the status of an invoice (e.g., "Why is my invoice pending?")
     - finance_report: Requesting periodic/compliance reports (e.g., "Quarterly spend report", "Show me anomalous vendors")
     - budget_query: Checking budget utilization (e.g., "What is the budget status for Marketing?")
-    - finance_export: Requesting a file/sheet/excel export (e.g., "Send me the excel sheet", "Generate an export for this month", "Export expenses to csv")
+    - recurring_query: Querying subscriptions or recurring expenses (e.g., "What are my recurring charges?", "List my subscriptions")
+    - predictive_query: Asking for forecasts or budget tracking predictions (e.g., "Am I on track for my budget?", "Predict my next month spend")
+    - finance_export: Requesting a FILE download like Excel/CSV (e.g., "Send me the excel sheet", "Export to csv", "Download expenses"). NOTE: If user asks for a CHART or GRAPH, use expense_summary instead!
     - clear_data: When the user wants to delete their expenses (e.g., "clear my expenses", "reset my database", "delete all my records")
     - request_access: When a user wants to join the system (e.g., "I'm John Smith, I want to use the bot", "Please approve me, I'm from Finance")
     - chat: General conversation, greetings, jokes, or non-finance questions (e.g., "Hello", "How are you?", "Tell me a joke").
@@ -48,6 +50,7 @@ async def classify_bot_intent(user_query: str, context: Optional[Dict[str, Any]]
     1. Output ONLY strict JSON.
     2. If intent is unclear, use "unknown".
     3. Use the context to resolve values like "that invoice" if possible.
+    4. CRITICAL: Keywords like "chart", "graph", "pie chart", "bar chart", "visualization" should trigger expense_summary, NOT finance_export!
     
     Context:
     Last Invoice ID: {last_invoice_id}
