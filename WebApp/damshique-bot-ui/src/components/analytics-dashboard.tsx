@@ -15,7 +15,7 @@ export default function AnalyticsDashboard() {
     const [predictive, setPredictive] = useState<any>(null);
 
     const [dateRange, setDateRange] = useState({
-        start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        start: new Date(new Date().getTime() - 90 * 24 * 60 * 60 * 1000),
         end: new Date()
     });
 

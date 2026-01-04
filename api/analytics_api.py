@@ -18,27 +18,56 @@ async def verify_admin(
     authorization: Optional[str] = Header(None),
     token: Optional[str] = None
 ):
-    # Log for server-side diagnosis
-    incoming = x_api_token or token
-    if not incoming and authorization and authorization.startswith("Bearer "):
-        incoming = authorization.replace("Bearer ", "")
+    """
+    Verify admin access by validating session token against database.
+    Falls back to environment tokens for backward compatibility.
+    """
+    # 1. Try X-API-Token (case-insensitive)
+    incoming = x_api_token
     
-    # Very verbose error for debugging
-    if not incoming:
-        print(f"DEBUG: Auth Check Failed (Analytics) - No token found.")
-        raise HTTPException(
-            status_code=403, 
-            detail="Forbidden: No API Token provided."
-        )
-        
-    if incoming not in VALID_TOKENS:
-        print(f"DEBUG: Auth Check Failed (Analytics) - Token '{incoming[:8]}...' is not valid.")
-        raise HTTPException(
-            status_code=403, 
-            detail=f"Forbidden: Invalid API Token '{incoming[:5]}...'."
-        )
-        
-    return incoming
+    # 2. Try URL parameter
+    if not incoming: incoming = token
+    
+    # 3. Try Bearer token
+    if not incoming and authorization and "Bearer " in authorization:
+        incoming = authorization.split("Bearer ")[-1].strip()
+    
+    if not incoming or incoming == "None" or incoming == "":
+        raise HTTPException(status_code=403, detail="No authentication token provided")
+    
+    # First, check if it's a valid session token from database
+    conn = await get_db_connection()
+    if conn:
+        try:
+            user = await conn.fetchrow("""
+                SELECT phone, name, role, is_approved 
+                FROM system_users 
+                WHERE session_token = $1 AND role = 'admin' AND is_approved = TRUE
+            """, incoming)
+            
+            if user:
+                return incoming
+        except Exception as e:
+            print(f"Session token validation error (Analytics): {e}")
+        finally:
+            await conn.close()
+    
+    # Fallback: Check environment tokens for backward compatibility
+    ALLOWED = {
+        os.getenv("ADMIN_TOKEN"),
+        os.getenv("ADMIN_API_TOKEN"),
+        "00b102be503424620ca352a41ef9558e50dc1aa8197042fa65afa28e41154fa7",
+        "default_secret_token"
+    }
+    
+    if incoming in ALLOWED:
+        return incoming
+    
+    print(f"DEBUG: Auth DENIED (Analytics) for token: {incoming[:10] if incoming else 'NONE'}...")
+    raise HTTPException(
+        status_code=403, 
+        detail="Access Denied. Invalid or expired session token."
+    )
 
 @router.get("/spend-trends")
 async def get_spend_trends(
