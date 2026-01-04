@@ -388,7 +388,7 @@ async def admin_chat(payload: Dict[str, Any] = Body(...), token: str = Depends(v
     context["history"] = history # Use fresh history from frontend
     
     # 2. Classify Intent
-    classification = await classify_bot_intent(user_query, context)
+    classification = await classify_bot_intent(user_query, context, is_admin=True)
     intent = classification.get("intent", "unknown")
     entities = classification.get("entities", {})
 

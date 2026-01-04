@@ -87,7 +87,7 @@ async def run_agent_loop(user_phone, text_message=None, media_path=None, mime_ty
         # Log User Message
         await log_conversation_message(user_phone, "user", text_message)
         
-        classification = await classify_bot_intent(text_message, context)
+        classification = await classify_bot_intent(text_message, context, is_admin=False)
         intent = classification.get("intent", "unknown")
         entities = classification.get("entities", {})
         
