@@ -16,14 +16,14 @@ export function SpendTrendChart({ data }: { data: any[] }) {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis
-                    dataKey="month_name"
+                    dataKey="display_name"
                     stroke="#64748b"
                     style={{ fontSize: 12, fontWeight: 600 }}
                 />
                 <YAxis
                     stroke="#64748b"
                     style={{ fontSize: 12, fontWeight: 600 }}
-                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
                 />
                 <Tooltip
                     contentStyle={{
@@ -98,7 +98,7 @@ export function MerchantBarChart({ data }: { data: any[] }) {
                 <YAxis
                     stroke="#64748b"
                     style={{ fontSize: 12, fontWeight: 600 }}
-                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
                 />
                 <Tooltip
                     contentStyle={{
