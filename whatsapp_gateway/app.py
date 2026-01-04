@@ -9,6 +9,7 @@ from agent_orchestrator.orchestrator import run_agent_loop
 from api.admin_api import router as admin_router
 from api.analytics_api import router as analytics_router
 from api.auth_api import router as auth_router
+from api.automation_api import router as automation_router
 from tools.messaging_tools.whatsapp import send_whatsapp
 from tools.notification_engine import NotificationEngine
 from storage.postgres_repository import run_pg_migrations
@@ -37,6 +38,7 @@ app = FastAPI()
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(analytics_router)
+app.include_router(automation_router)
 
 # Enable CORS
 app.add_middleware(
@@ -61,7 +63,22 @@ WA_TOKEN = os.getenv("WA_TOKEN")
 async def startup():
     await run_pg_migrations()
     NotificationEngine.set_broadcaster(manager.broadcast)
-    print("🚀 Agentic Expense System Ready")
+    
+    # Start Background Automation Scheduler
+    import asyncio
+    from agent_orchestrator.workflow_service import workflow_service
+    
+    async def run_automation_loop():
+        while True:
+            try:
+                print("⏰ Running background automation tasks...")
+                await workflow_service.run_scheduler_tasks()
+            except Exception as e:
+                print(f"❌ Automation loop error: {e}")
+            await asyncio.sleep(3600) # Run every hour
+            
+    asyncio.create_task(run_automation_loop())
+    print("🚀 Agentic Expense System Ready with Business Automation")
 
 @app.get("/health")
 async def health_check():

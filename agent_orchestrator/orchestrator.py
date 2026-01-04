@@ -196,8 +196,12 @@ async def handle_media_extraction(user_phone, user_name, file_path, mime_type, d
             
             await update_conversation_context(user_phone, last_invoice_id=str(invoice_uuid), last_query_type="invoice_upload")
 
-            # 6. Smart Finance: Recurring & Predictive
+            # 6. Smart Finance & Business Automation
             try:
+                # 6.0 Workflow Automation (Approvals, PO Reconciliation)
+                from agent_orchestrator.workflow_service import workflow_service
+                await workflow_service.process_invoice_automation(str(invoice_uuid))
+
                 # 6.1 Recurring Detection
                 from tools.finance_tools.recurring_detector import RecurringDetector
                 potentials = await RecurringDetector.find_potential_recurring(user_phone)

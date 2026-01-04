@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Users, Store, BarChart3, Bot, Search, Menu, X, FileText, Bell, Settings, Clock, Shield, Activity, CheckSquare, History, MessageSquare, TrendingUp, LogOut } from "lucide-react";
+import { Users, Store, BarChart3, Bot, Search, Menu, X, FileText, Bell, Settings, Clock, Shield, Activity, CheckSquare, History, MessageSquare, TrendingUp, LogOut, Layers } from "lucide-react";
 import InvoicesDashboard from "./components/invoices-dashboard";
 import EmployeesDashboard from "./components/employees-dashboard";
 import MerchantsDashboard from "./components/merchants-dashboard";
@@ -12,6 +12,7 @@ import AdminChat from "./components/admin-chat";
 import SettingsDashboard from "./components/settings-dashboard";
 import NotificationsDashboard from "./components/notifications-dashboard";
 import AnalyticsDashboard from "./components/analytics-dashboard";
+import WorkflowsDashboard from "./components/WorkflowsDashboard";
 import { getAdminToken, clearAuth } from "./utils/auth";
 
 export default function DamshiqueHome() {
@@ -118,6 +119,7 @@ export default function DamshiqueHome() {
   const menuItems = [
     { icon: <Search size={20} />, label: "Home", color: "#3b82f6", stat: "Main" },
     { icon: <TrendingUp size={20} />, label: "Analytics", color: "#10b981", stat: "AI" },
+    { icon: <Layers size={20} />, label: "Workflows", color: "#f59e0b", stat: "Auto" },
     { icon: <FileText size={20} />, label: "Invoices", color: "#06b6d4", stat: stats.invoices },
     { icon: <Shield size={20} />, label: "Users & Approval", color: "#8b5cf6", stat: stats.aiQueue },
     { icon: <Users size={20} />, label: "Employees", color: "#3b82f6", stat: stats.employees },
@@ -184,6 +186,7 @@ export default function DamshiqueHome() {
           <DashboardCard icon={<FileText size={28} />} label="Invoices" color="#06b6d4" desc={`${stats.invoices} processed invoices`} onClick={() => setActiveSection("Invoices")} />
           <DashboardCard icon={<Users size={28} />} label="Employees" color="#3b82f6" desc={`${stats.employees} active team members`} onClick={() => setActiveSection("Employees")} />
           <DashboardCard icon={<Store size={28} />} label="Merchants" color="#f59e0b" desc={`${stats.merchants} registered vendors`} onClick={() => setActiveSection("Merchants")} />
+          <DashboardCard icon={<Layers size={28} />} label="Workflows" color="#f59e0b" desc="Automation & Routing" onClick={() => setActiveSection("Workflows")} />
           <DashboardCard icon={<Shield size={28} />} label="Users & Approval" color="#3b82f6" desc={`${stats.aiQueue} pending approvals`} onClick={() => setActiveSection("Users & Approval")} />
           <DashboardCard icon={<BarChart3 size={28} />} label="Reports" color="#10b981" desc="Generate financial reports" onClick={() => setActiveSection("Reports")} />
         </div>
@@ -195,6 +198,7 @@ export default function DamshiqueHome() {
     switch (activeSection) {
       case "Invoices": return <InvoicesDashboard />;
       case "Analytics": return <AnalyticsDashboard />;
+      case "Workflows": return <WorkflowsDashboard />;
       case "Employees": return <EmployeesDashboard />;
       case "Merchants": return <MerchantsDashboard />;
       case "Reports": return <ReportsDashboard />;
