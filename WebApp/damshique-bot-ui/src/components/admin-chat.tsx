@@ -109,7 +109,7 @@ export default function AdminChat({ initialQuery, isOpen, setIsOpen, showButton 
                 style={{
                     position: "fixed", top: 0, right: 0,
                     width: "100%", maxWidth: 450,
-                    height: "100vh", height: "100dvh",
+                    height: "100dvh",
                     background: "#fcfdff", zIndex: 9999,
                     boxShadow: "-10px 0 40px rgba(0,0,0,0.1)",
                     display: "flex", flexDirection: "column",
