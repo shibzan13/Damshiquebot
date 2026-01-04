@@ -44,7 +44,7 @@ async def generate_bot_response(user_query: str, query_results: Dict[str, Any], 
     # we still let Gemini explain this nicely to the user.
     no_results = not query_results.get("results") and not query_results.get("summary")
     
-    data_intents = ["expense_summary", "invoice_search", "invoice_detail", "invoice_status", "finance_report", "budget_query", "recurring_query", "predictive_query"]
+    data_intents = ["expense_summary", "invoice_search", "invoice_detail", "invoice_status", "finance_report", "budget_query", "recurring_query", "predictive_query", "finance_scenario", "custom_report"]
     intent = query_results.get("query_meta", {}).get("intent")
     is_data_query = intent in data_intents
 

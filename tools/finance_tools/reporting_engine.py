@@ -80,3 +80,65 @@ class ReportingEngine:
             }
         finally:
             await conn.close()
+    @staticmethod
+    async def get_scenario_analysis(user_id: str, params: Dict[str, Any]):
+        """
+        Simulate cash flow changes: "What if we delay payments by X days?"
+        """
+        delay_days = params.get("delay_days", 0)
+        
+        conn = await get_db_connection()
+        if not conn: return None
+        
+        try:
+            # Get upcoming unpaid invoices
+            rows = await conn.fetch("""
+                SELECT due_date, total_amount, currency 
+                FROM invoices 
+                WHERE status = 'approved' AND payment_status != 'paid'
+                AND due_date >= CURRENT_DATE
+                AND (user_id = $1 OR $2 = TRUE)
+            """, user_id, (user_id is None)) # Admin bypass if user_id is None
+            
+            original_flow = {}
+            shifted_flow = {}
+            
+            for r in rows:
+                orig_date = r['due_date'].strftime("%Y-%m-%d")
+                shifted_date = (r['due_date'] + timedelta(days=delay_days)).strftime("%Y-%m-%d")
+                amt = float(r['total_amount'])
+                
+                original_flow[orig_date] = original_flow.get(orig_date, 0) + amt
+                shifted_flow[shifted_date] = shifted_flow.get(shifted_date, 0) + amt
+                
+            return {
+                "scenario": f"Delaying payments by {delay_days} days",
+                "impact": {
+                    "original_timeline": original_flow,
+                    "new_timeline": shifted_flow
+                }
+            }
+        finally:
+            await conn.close()
+
+    @staticmethod
+    async def get_custom_report(user_id: str, group_by: str = 'cost_center'):
+        """
+        Dynamic grouping for reports: "Monthly summary per department"
+        """
+        conn = await get_db_connection()
+        if not conn: return None
+        
+        try:
+            col = group_by if group_by in ['cost_center', 'category', 'vendor_name'] else 'cost_center'
+            rows = await conn.fetch(f"""
+                SELECT {col} as label, SUM(total_amount) as total, currency, COUNT(*) as count
+                FROM invoices 
+                WHERE (user_id = $1 OR $2 = TRUE)
+                GROUP BY {col}, currency
+                ORDER BY total DESC
+            """, user_id, (user_id is None))
+            
+            return {"report_data": [dict(r) for r in rows], "grouped_by": col}
+        finally:
+            await conn.close()

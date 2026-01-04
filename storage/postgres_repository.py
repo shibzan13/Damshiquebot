@@ -104,10 +104,10 @@ async def persist_invoice_intelligence(
             invoice_id = await conn.fetchval("""
                 INSERT INTO invoices (
                     user_id, vendor_name, invoice_date, currency, subtotal, 
-                    tax_amount, total_amount, confidence_score, line_items_status, 
+                    tax_amount, total_amount, category, confidence_score, line_items_status, 
                     file_url, file_hash, whatsapp_media_id, status, version, is_latest,
                     compliance_flags, cost_center, embedding, raw_text, updated_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 1, TRUE, $14, $15, $16, $17, CURRENT_TIMESTAMP)
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 1, TRUE, $15, $16, $17, $18, CURRENT_TIMESTAMP)
                 RETURNING invoice_id
             """, 
             user_id, 
@@ -117,6 +117,7 @@ async def persist_invoice_intelligence(
             invoice_data.get("subtotal"),
             invoice_data.get("tax_amount"),
             invoice_data.get("total_amount"),
+            invoice_data.get("category", "Other"),
             invoice_data.get("confidence_score"),
             invoice_data.get("line_items_status"),
             file_url,

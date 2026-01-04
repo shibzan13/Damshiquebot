@@ -59,6 +59,10 @@ class QueryEngine:
                 else:
                     await conn.execute("DELETE FROM invoices") # Master clear for admin
                 return {"results": [], "query_meta": {"intent": "clear_data", "success": True}}
+            elif intent == "finance_scenario":
+                return await QueryEngine._handle_finance_scenario(conn, user_id, role, entities)
+            elif intent == "custom_report":
+                return await QueryEngine._handle_custom_report(conn, user_id, role, entities)
             elif intent == "chat":
                  # Pass through to response generator for pure conversation
                  return {"results": [], "query_meta": {"intent": "chat"}}
@@ -77,32 +81,46 @@ class QueryEngine:
 
     @staticmethod
     async def _handle_expense_summary(conn, user_id, role, entities):
-        # Base query
-        query = "SELECT currency, SUM(total_amount) as total, COUNT(*) as count FROM invoices WHERE status != 'rejected'"
+        metric = entities.get("metric", "total")
+        group_by = entities.get("group_by", "category")
+        
+        # Mapping group_by to actual columns
+        col_map = {"vendor": "vendor_name", "category": "category", "month": "TO_CHAR(invoice_date, 'YYYY-MM')", "department": "cost_center"}
+        group_col = col_map.get(group_by, "category")
+
+        query = f"SELECT {group_col} as label, currency, SUM(total_amount) as total, COUNT(*) as count FROM invoices WHERE status != 'rejected'"
         params = []
         param_idx = 1
         
-        # Permissions
         if role != "admin":
             query += f" AND user_id = ${param_idx}"
             params.append(user_id)
             param_idx += 1
             
-        # Filters
         date_range = entities.get("date_range")
         if date_range == "this_month":
             start_date = datetime.now().replace(day=1).date()
             query += f" AND invoice_date >= ${param_idx}"
             params.append(start_date)
             param_idx += 1
+        elif date_range == "last_month":
+            today = datetime.now().date()
+            first = today.replace(day=1)
+            last_month_end = first - timedelta(days=1)
+            last_month_start = last_month_end.replace(day=1)
+            query += f" AND invoice_date >= ${param_idx} AND invoice_date <= ${param_idx+1}"
+            params.extend([last_month_start, last_month_end])
+            param_idx += 2
             
-        category = entities.get("category")
-        if category:
-            query += f" AND category = ${param_idx}"
-            params.append(category)
-            param_idx += 1
+        query += f" GROUP BY {group_col}, currency"
+        
+        if metric == "highest":
+            query += " ORDER BY total DESC LIMIT 1"
+        elif metric == "lowest":
+            query += " ORDER BY total ASC LIMIT 1"
+        else:
+            query += " ORDER BY total DESC"
 
-        query += " GROUP BY currency"
         rows = await conn.fetch(query, *params)
         return {"results": [dict(r) for r in rows], "query_meta": {"intent": "expense_summary", "filters": entities}}
 
@@ -136,6 +154,12 @@ class QueryEngine:
             else:
                 query += f" AND total_amount = ${param_idx}"
                 params.append(float(amount_filter))
+            param_idx += 1
+
+        status = entities.get("status")
+        if status:
+            query += f" AND status = ${param_idx}"
+            params.append(status)
             param_idx += 1
 
         query += " ORDER BY invoice_date DESC LIMIT 5"
@@ -248,3 +272,19 @@ class QueryEngine:
             # Fallback to text search
             entities["vendor"] = search_query
             return await QueryEngine._handle_invoice_search(conn, user_id, role, entities)
+
+    @staticmethod
+    async def _handle_finance_scenario(conn, user_id, role, entities):
+        from tools.finance_tools.reporting_engine import ReportingEngine
+        params = entities.get("scenario_params", {})
+        target_user_id = user_id if role != "admin" else None
+        results = await ReportingEngine.get_scenario_analysis(target_user_id, params)
+        return {**results, "query_meta": {"intent": "finance_scenario"}}
+
+    @staticmethod
+    async def _handle_custom_report(conn, user_id, role, entities):
+        from tools.finance_tools.reporting_engine import ReportingEngine
+        group_by = entities.get("group_by", "cost_center")
+        target_user_id = user_id if role != "admin" else None
+        results = await ReportingEngine.get_custom_report(target_user_id, group_by)
+        return {**results, "query_meta": {"intent": "custom_report"}}

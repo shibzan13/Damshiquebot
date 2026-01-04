@@ -29,7 +29,9 @@ async def classify_bot_intent(user_query: str, context: Optional[Dict[str, Any]]
     - budget_query: Checking budget utilization (e.g., "What is the budget status for Marketing?")
     - recurring_query: Querying subscriptions or recurring expenses (e.g., "What are my recurring charges?", "List my subscriptions")
     - predictive_query: Asking for forecasts or budget tracking predictions (e.g., "Am I on track for my budget?", "Predict my next month spend")
-    - finance_export: Requesting a FILE download like Excel/CSV (e.g., "Send me the excel sheet", "Export to csv", "Download expenses"). NOTE: If user asks for a CHART or GRAPH, use expense_summary instead!
+    - finance_scenario: Hypothetical scenario analysis (e.g., "If we delay payments by 10 days...", "What if we cut marketing budget by 20%?").
+    - finance_export: Requesting a FILE download like Excel/CSV (e.g., "Send me the excel sheet", "Export to csv", "Download expenses").
+    - custom_report: Specialized report requests (e.g., "Department summary for Q1", "Breakdown by project").
     - clear_data: When the user wants to delete their expenses (e.g., "clear my expenses", "reset my database", "delete all my records")
     - request_access: When a user wants to join the system (e.g., "I'm John Smith, I want to use the bot", "Please approve me, I'm from Finance")
     - chat: General conversation, greetings, jokes, or non-finance questions (e.g., "Hello", "How are you?", "Tell me a joke").
@@ -45,6 +47,9 @@ async def classify_bot_intent(user_query: str, context: Optional[Dict[str, Any]]
     - status: "pending", "approved", "rejected".
     - reference: "last", "this", "that" (for context resolution).
     - search_query: Full natural language search query for semantic_search intent.
+    - group_by: Field to group by (e.g., "vendor", "category", "month", "department").
+    - metric: What value is requested (e.g., "highest", "lowest", "average", "total").
+    - scenario_params: Specific parameters for scenario analysis (e.g., {"delay_days": 10}, {"budget_cut": 0.2}).
 
     Rules:
     1. Output ONLY strict JSON.

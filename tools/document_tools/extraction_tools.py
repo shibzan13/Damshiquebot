@@ -115,7 +115,7 @@ async def gemini_structured_extract(
     - Tax amount (sum of all taxes or total tax)
     - Currency (AED, USD, EUR, etc.)
     - Transaction date (in YYYY-MM-DD format)
-    - Category (select from the provided list)
+    - Category (Assign one: Food & Dining, Electronics, Accessories, Groceries, Transport, Utilities, Shopping, Entertainment, Health, Travel, Other)
     - Confidence score (0.0-1.0)
     - Line items (array of objects with: description, quantity, unit_price, tax, line_total)
     
@@ -130,18 +130,18 @@ async def gemini_structured_extract(
     
     Example Response:
     {
-        "merchant": "Starbucks",
-        "amount": 25.50,
-        "subtotal": 24.29,
-        "tax_amount": 1.21,
+        "merchant": "Apple Store",
+        "amount": 4500.00,
+        "subtotal": 4285.71,
+        "tax_amount": 214.29,
         "currency": "AED",
         "date": "2025-12-21",
-        "category": "Food & Dining",
-        "confidence": 0.95,
+        "category": "Electronics",
+        "confidence": 0.98,
         "line_items": [
-           {"description": "Caffe Latte", "quantity": 1, "unit_price": 24.29, "tax": 1.21, "line_total": 25.50}
+           {"description": "iPhone 15 Pro", "quantity": 1, "unit_price": 4285.71, "tax": 214.29, "line_total": 4500.00}
         ],
-        "notes": "Extracted from receipt"
+        "notes": "Premium gadget purchase"
     }"""
     
     user_prompt = f"""Extract expense information from the following text:
@@ -230,6 +230,7 @@ def normalize_extraction(result: Dict[str, Any]) -> Dict[str, Any]:
         "total_amount": float(result.get("amount") or 0),
         "tax_amount": float(result.get("tax_amount") or 0),
         "subtotal": float(result.get("subtotal") or 0),
+        "category": result.get("category", "Other"),
         "confidence_score": float(result.get("confidence") or 0.5),
         "line_items": [],
         "line_items_status": "unavailable"
