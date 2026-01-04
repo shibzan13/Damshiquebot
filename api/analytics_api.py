@@ -433,6 +433,21 @@ async def get_predictive_spend(
         last_row = await conn.fetchrow(last_month_query, last_month_start.date(), last_month_end.date())
         last_month_spend = float(last_row['last_month_spend']) if last_row['last_month_spend'] else 0
         
+        return {
+            "current_month": current_month_start.strftime('%B %Y'),
+            "days_elapsed": current_day,
+            "days_remaining": days_in_month - current_day,
+            "current_spend": current_spend,
+            "projected_spend": projected_spend,
+            "last_month_spend": last_month_spend,
+            "variance": projected_spend - last_month_spend,
+            "variance_percentage": round(((projected_spend - last_month_spend) / last_month_spend * 100), 2) if last_month_spend > 0 else 0,
+            "daily_average": daily_avg,
+            "invoice_count": invoice_count
+        }
+    finally:
+        await conn.close()
+        
 @router.get("/budget-vs-actual")
 async def get_budget_vs_actual(token: str = Depends(verify_admin)):
     """
