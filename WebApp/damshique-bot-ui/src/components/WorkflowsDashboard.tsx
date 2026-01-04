@@ -118,7 +118,20 @@ export default function WorkflowsDashboard() {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 12 }}>
-                                        <button style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Edit</button>
+                                        <button
+                                            onClick={() => {
+                                                setNewRule({
+                                                    name: rule.name,
+                                                    priority: rule.priority,
+                                                    approver_role: rule.approver_role,
+                                                    conditions: JSON.parse(JSON.stringify(rule.conditions))
+                                                });
+                                                setShowRuleModal(true);
+                                            }}
+                                            style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                                        >
+                                            Edit
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -214,6 +227,93 @@ export default function WorkflowsDashboard() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Rule Creation Modal */}
+            {showRuleModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
+                    <div style={{ background: '#fff', width: '100%', maxWidth: 500, borderRadius: 32, padding: 40, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+                        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>New Approval Rule</h2>
+                        <p style={{ color: '#64748b', marginBottom: 32 }}>Define when an invoice needs special approval.</p>
+
+                        <div style={{ display: 'grid', gap: 20 }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#475569', marginBottom: 8 }}>Rule Name</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. IT Equipment Review"
+                                    style={{ width: '100%', padding: '14px 20px', borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 16 }}
+                                    value={newRule.name}
+                                    onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#475569', marginBottom: 8 }}>Priority (1-10)</label>
+                                    <input
+                                        type="number"
+                                        style={{ width: '100%', padding: '14px 20px', borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 16 }}
+                                        value={newRule.priority}
+                                        onChange={(e) => setNewRule({ ...newRule, priority: parseInt(e.target.value) })}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#475569', marginBottom: 8 }}>Approver Role</label>
+                                    <select
+                                        style={{ width: '100%', padding: '14px 20px', borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 16, background: '#fff' }}
+                                        value={newRule.approver_role}
+                                        onChange={(e) => setNewRule({ ...newRule, approver_role: e.target.value })}
+                                    >
+                                        <option value="manager">Manager</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="finance">Finance</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style={{ padding: 20, background: '#f8fafc', borderRadius: 16, border: '1px solid #e2e8f0' }}>
+                                <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#64748b', marginBottom: 16, textTransform: 'uppercase' }}>Conditions</label>
+                                <div style={{ display: 'grid', gap: 12 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                        <span style={{ fontSize: 14, color: '#64748b', minWidth: 100 }}>Min Amount:</span>
+                                        <input
+                                            type="number"
+                                            style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '1px solid #e2e8f0' }}
+                                            value={newRule.conditions.min_amount}
+                                            onChange={(e) => setNewRule({ ...newRule, conditions: { ...newRule.conditions, min_amount: parseInt(e.target.value) } })}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                        <span style={{ fontSize: 14, color: '#64748b', minWidth: 100 }}>Category:</span>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Software"
+                                            style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '1px solid #e2e8f0' }}
+                                            value={newRule.conditions.category}
+                                            onChange={(e) => setNewRule({ ...newRule, conditions: { ...newRule.conditions, category: e.target.value } })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 16, marginTop: 40 }}>
+                            <button
+                                onClick={() => setShowRuleModal(false)}
+                                style={{ flex: 1, padding: '16px', borderRadius: 14, border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateRule}
+                                style={{ flex: 1, padding: '16px', borderRadius: 14, border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                                Create Rule
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
