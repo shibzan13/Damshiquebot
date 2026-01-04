@@ -105,7 +105,8 @@ class WorkflowService:
         try:
             # 1. Payment Reminders (Upcoming in 3 days or Overdue)
             overdue = await conn.fetch("""
-                SELECT i.*, u.phone 
+                SELECT i.*, u.phone, u.name as user_name,
+                       (SELECT phone FROM system_users WHERE role = 'admin' LIMIT 1) as admin_phone
                 FROM invoices i
                 JOIN system_users u ON i.user_id = u.phone
                 WHERE i.payment_status IN ('unpaid', 'partially_paid')
@@ -114,16 +115,30 @@ class WorkflowService:
             """)
             
             for inv in overdue:
+                is_overdue = inv['due_date'] < datetime.now().date()
+                status_label = "⚠️ OVERDUE" if is_overdue else "⏳ DUE SOON"
+                
                 # Logic to trigger WhatsApp notification
-                msg = f"🔔 *Payment Reminder*\n\nYour invoice from *{inv['vendor_name']}* for *{inv['total_amount']} {inv['currency']}* is {'⚠️ OVERDUE' if inv['due_date'] < datetime.now().date() else 'due soon'}.\n\n📅 Due Date: {inv['due_date']}"
+                msg = f"🔔 *Payment Reminder*\n\nInvoice from *{inv['vendor_name']}* for *{inv['total_amount']} {inv['currency']}* is {status_label}.\n\n📅 Due Date: {inv['due_date']}\n👤 Employee: {inv['user_name']}"
                 
                 from tools.messaging_tools.whatsapp import send_whatsapp
+                from tools.notification_engine import NotificationEngine
+                
+                # Notify User
                 await send_whatsapp(inv['user_id'], msg)
 
-                await conn.execute("""
-                    INSERT INTO notification_events (user_id, event_type, message)
-                    VALUES ($1, 'payment_reminder', $2)
-                """, inv['user_id'], msg)
+                # Notify Admin if overdue or high value
+                if inv.get('admin_phone'):
+                    admin_msg = f"🚨 *ADMIN ALERT: Payment {status_label}*\n\nVendor: {inv['vendor_name']}\nAmount: {inv['total_amount']} {inv['currency']}\nDue: {inv['due_date']}\nUser: {inv['user_name']}"
+                    await send_whatsapp(inv['admin_phone'], admin_msg)
+                    
+                # Log to System Notifications (WebApp)
+                await NotificationEngine._log_and_send(
+                    inv['user_id'], 
+                    "payment_alert", 
+                    f"Payment for {inv['vendor_name']} ({inv['total_amount']} {inv['currency']}) is {status_label.lower().replace('*', '')}.",
+                    inv
+                )
 
             # 2. Recurring Invoice Generation
             today = datetime.now().date()
