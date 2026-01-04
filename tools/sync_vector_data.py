@@ -18,8 +18,28 @@ from tools.document_tools.extraction_tools import generate_embedding
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+from tools.storage_tools.s3_storage import storage_service
+
 async def download_file(url, target_path):
-    """Downloads a file from a URL to a local path."""
+    """Downloads a file from a URL to a local path (Supports authenticated S3)."""
+    if "amazonaws.com" in url:
+        try:
+            # Extract key from URL
+            parts = url.split(".amazonaws.com/")
+            if len(parts) < 2: return False
+            key = parts[1]
+            
+            print(f"📦 Downloading authenticated S3 object: {key}")
+            os.makedirs(os.path.dirname(target_path), exist_ok=True)
+            
+            # Using boto3 client directly for internal download
+            storage_service.s3_client.download_file(storage_service.bucket_name, key, target_path)
+            return True
+        except Exception as e:
+            logger.error(f"S3 Direct download failed: {e}")
+            return False
+            
+    # Fallback for standard HTTP
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
         if response.status_code == 200:
